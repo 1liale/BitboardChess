@@ -1,19 +1,18 @@
 #ifndef __PLAYER_H__
 #define __PLAYER_H__
 
-#include "move.h"
+#include <string>
+#include <sstream>
+
+class Board;
 
 class Player {
+protected:
+    bool isWhite;
 public:
-    enum PlayerType {
-        HUMAN,
-        COMPUTER_1,
-        COMPUTER_2
-    };
-
-    Player(PlayerType type, bool isWhite);
+    Player(bool isWhite);
     virtual ~Player();
-    virtual Move move(std::istringstream& ss) = 0;
+    virtual int move(Board* chessBoard, std::istringstream& ss) = 0;
 };
 
 #endif
