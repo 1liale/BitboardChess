@@ -10,6 +10,8 @@
 
 using namespace std;
 
+// IN PROGRESS: PREMATURE OPTIMIZATION IS ROOT OF ALL EVIL
+
 // Controller controls game flow and handles user inputs:
 // commands: 
 //     game [player1] [player2]     starts a new game
@@ -34,7 +36,10 @@ class Controller {
         cout << "Player 2: " << losses << " wins, " << wins << " losses, " << ties << " ties" << endl; 
     }
 
-    void setupPlayers(string& white, string& black) {
+    void setupPlayers(istringstream& ss) {
+        string white, black;
+        ss >> white;
+        ss >> black;
         if (white == "human") {
             players[0] = new Human(true);
         } else {
@@ -47,6 +52,75 @@ class Controller {
             players[1] = new Computer(false, black);
         }
     }
+
+    // 0 = lost, 1 = win, 2 = tie
+    void updateGameState(int flag) {
+        switch(flag) {
+            case 0:
+                losses++;
+                break;
+            case 1:
+                wins++;
+                break;
+            case 2:
+                ties++;
+                break;
+            default:
+                break;
+        }
+    }
+
+    void handleRunningGame(string& command, istringstream& ss) {
+        Player* curPlayer = players[turn % 2];
+        if (command == "move") {
+            int flag = curPlayer->move(chessBoard, ss);
+            if (flag == 1) {
+                chessBoard->print();
+            } else if (flag == 2) {
+                cout << "Illegal move, try again!" << endl;
+            } else {
+                if (flag >= 3) {
+                    cout << "Game has ended, you can create a new game or exit" << endl;
+                    isGameSetup = false;
+                }
+                if (flag == 3) flag = turn % 2 + 1;
+                else if (flag == 4) flag = 2;
+                else flag = -1;
+                updateGameState(flag);  
+            }
+        } else if (command == "undo") {
+            int num = 1;
+            if (!ss.str().empty()) {
+                ss >> num;
+            }
+            chessBoard->undo(num);
+        } else if (command == "forfeit") {
+            updateGameState(turn % 2);
+            isGameSetup = false;
+        } else {
+            cout << "Command not recognized, try again!" << endl;
+        }
+    }
+
+    void handleSetup(string& command, istringstream& ss) {
+        if (command == "game") {
+            chessBoard = new Board();
+            setupPlayers(ss);
+            isGameSetup = true;
+            chessBoard->print();
+        } 
+        // not essential, leave as is for now
+        else if (command == "load") {
+            string fenString;
+            ss >> fenString;
+            chessBoard = new Board(fenString);
+            isGameSetup = true;
+            chessBoard->print();
+        } else {
+            cout << "Command not recognized, try again!" << endl;
+        }
+    }
+
 public:
     Controller(): wins{0}, losses{0}, ties{0}, chessBoard{nullptr}, isGameSetup{false}, turn{0} {}
     ~Controller() {
@@ -69,56 +143,9 @@ public:
                 }
 
                 if (isGameSetup) {
-                    Player* curPlayer = players[turn % 2];
-                    turn++;
-                    if (command == "move") {
-                        int flag = curPlayer->move(chessBoard, ss);
-                        if (flag == 0) {
-                            ++wins;
-                        } else if (flag == 1) {
-                            ++losses;
-                        } else if (flag == 2) {
-                            ++ties;
-                        } else if (flag == 3) {
-                            chessBoard->print();
-                        } else {
-                            cout << "Illegal move, try again!" << endl;
-                        }
-                    } else if (command == "undo") {
-                        int num = 1;
-                        if (!ss.str().empty()) {
-                            ss >> num;
-                        }
-                        chessBoard->undo(num);
-                    } else if (command == "forfeit") {
-                        if (turn % 2) {
-                            ++losses;    
-                        } else {
-                            ++wins;
-                        }
-                        delete chessBoard;
-                        isGameSetup = false;
-                    } else {
-                        cout << "Command not recognized, try again!" << endl;
-                    }
+                    handleRunningGame(command, ss);
                 } else {
-                    if (command == "game") {
-                        chessBoard = new Board();
-                        string white, black;
-                        ss >> white;
-                        ss >> black;
-                        setupPlayers(white, black);
-                        isGameSetup = true;
-                    } 
-                    // not essential, leave as is for now
-                    else if (command == "load") {
-                        string fenString;
-                        ss >> fenString;
-                        chessBoard = new Board(fenString);
-                        isGameSetup = true;
-                    } else {
-                        cout << "Command not recognized, try again!" << endl;
-                    }
+                    handleSetup(command, ss);
                 }
             } catch(runtime_error& e) {
                 cerr << e.what() << endl;
