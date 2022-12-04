@@ -1,10 +1,12 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -g -Wall -MMD
+CXXFLAGS = -std=c++11 -g -Wall -MMD -O3
 EXEC = ../build/chess
 PLAYER = player.o human.o computer.o
+DISPLAY = subject.o textObserver.o
 # LEVELS = level.o level1.o level2.o  level3.o level4.o
 # PIECES = piece.o king.o queen.o knight.o bishop.o rook.o pawn.o
-OBJECTS = main.o ${PLAYER} ${LEVELS} ${PIECES} board.o
+STATE = board.o
+OBJECTS = main.o ${PLAYER} ${LEVELS} ${PIECES} ${STATE} ${DISPLAY}
 DEPENDS = ${OBJECTS:.o=.d}
 
 ${EXEC}: ${OBJECTS}

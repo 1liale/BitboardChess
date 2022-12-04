@@ -7,6 +7,9 @@
 #include "player.h"
 #include "human.h"
 #include "computer.h"
+#include "observer.h"
+#include "textObserver.h"
+// #include "guiObserver.h"
 
 using namespace std;
 
@@ -26,6 +29,7 @@ class Controller {
     int wins, losses, ties; // from player1's POV
     Board* chessBoard;
     Player* players[2];
+    vector<Observer*> observers;
     bool isGameSetup;
     int turn;
 
@@ -73,13 +77,11 @@ class Controller {
         Player* curPlayer = players[turn % 2];
         if (command == "move") {
             int flag = curPlayer->move(chessBoard, ss);
-            if (flag == 1) {
-                chessBoard->print();
-            } else if (flag == 2) {
-                cout << "Illegal move, try again!" << endl << endl;
+            if (flag == 2) {
+                cout << endl << "Illegal move, try again!" << endl;
             } else {
                 if (flag >= 3) {
-                    cout << "Game has ended, you can create a new game or exit" << endl;
+                    cout << endl << "Game has ended, you can create a new game or exit" << endl;
                     isGameSetup = false;
                 }
                 if (flag == 3) flag = turn % 2 + 1;
@@ -97,27 +99,32 @@ class Controller {
             updateGameState(turn % 2);
             isGameSetup = false;
         } else {
-            cout << "Command not recognized, try again!" << endl << endl;
+            cout << endl << "Command not recognized, try again!" << endl;
         }
     }
 
     void handleSetup(string& command, istringstream& ss) {
+        if (command != "game" && command != "load") {
+            cout << endl << "Command not recognized, try again!" << endl;
+            return;
+        }
+
         if (command == "game") {
             chessBoard = new Board();
             setupPlayers(ss);
-            isGameSetup = true;
-            chessBoard->print();
         } 
         // not essential, leave as is for now
         else if (command == "load") {
+            setupPlayers(ss);
             string fenString;
             ss >> fenString;
             chessBoard = new Board(fenString);
-            isGameSetup = true;
-            chessBoard->print();
-        } else {
-            cout << "Command not recognized, try again!" << endl << endl;
         }
+        isGameSetup = true;
+        observers.clear(); 
+        observers.push_back(new TextObserver(chessBoard));
+        chessBoard->render();
+        // observers.push_back(new GuiObserver(chessBoard));
     }
 
 public:
@@ -144,6 +151,7 @@ public:
 
                 if (isGameSetup) {
                     handleRunningGame(command, ss);
+                    chessBoard->render();
                 } else {
                     handleSetup(command, ss);
                 }
