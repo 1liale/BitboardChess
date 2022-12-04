@@ -30,10 +30,9 @@ class Controller {
     int turn;
 
     void printStat() {
-        cout << endl << "Game Stats" << endl;
-        cout << "Games played: " << (wins + losses + ties) << endl;
+        cout << endl << "Games played: " << (wins + losses + ties) << endl;
         cout << "Player 1: " << wins << " wins, " << losses << " losses, " << ties << " ties" << endl;
-        cout << "Player 2: " << losses << " wins, " << wins << " losses, " << ties << " ties" << endl; 
+        cout << "Player 2: " << losses << " wins, " << wins << " losses, " << ties << " ties" << endl << endl; 
     }
 
     void setupPlayers(istringstream& ss) {
@@ -77,7 +76,7 @@ class Controller {
             if (flag == 1) {
                 chessBoard->print();
             } else if (flag == 2) {
-                cout << "Illegal move, try again!" << endl;
+                cout << "Illegal move, try again!" << endl << endl;
             } else {
                 if (flag >= 3) {
                     cout << "Game has ended, you can create a new game or exit" << endl;
@@ -98,7 +97,7 @@ class Controller {
             updateGameState(turn % 2);
             isGameSetup = false;
         } else {
-            cout << "Command not recognized, try again!" << endl;
+            cout << "Command not recognized, try again!" << endl << endl;
         }
     }
 
@@ -117,7 +116,7 @@ class Controller {
             isGameSetup = true;
             chessBoard->print();
         } else {
-            cout << "Command not recognized, try again!" << endl;
+            cout << "Command not recognized, try again!" << endl << endl;
         }
     }
 
@@ -140,6 +139,7 @@ public:
                     break;
                 } else if (command == "showstat") {
                     printStat(); 
+                    continue;
                 }
 
                 if (isGameSetup) {

@@ -7,6 +7,11 @@
 
 class Board {
     std::vector<uint64_t> bitmaps;
+
+    void setBit(uint64_t b, int i);
+    void getBit(uint64_t b, int i);
+    void clearBit(uint64_t b, int i);
+    uint64_t
 public:
     Board();
     Board(std::string& fenString);
