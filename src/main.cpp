@@ -94,7 +94,7 @@ class Controller {
             if (!ss.str().empty()) {
                 ss >> num;
             }
-            chessBoard->undo(num);
+            chessBoard->undoMove(num);
         } else if (command == "forfeit") {
             updateGameState(turn % 2);
             isGameSetup = false;

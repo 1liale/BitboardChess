@@ -7,23 +7,29 @@
 
 class Board : public Subject {
 private:
-    std::unordered_map<char, uint64_t> bitmaps = {
-        {'p', 0ULL}, {'r', 0ULL},{'n', 0ULL}, {'b', 0ULL}, {'q', 0ULL}, {'k', 0ULL}, 
-        {'P', 0ULL}, {'R', 0ULL},{'N', 0ULL}, {'B', 0ULL}, {'Q', 0ULL}, {'K', 0ULL}
-    };
+    std::unordered_map<char, uint64_t> pieceMaps;
+    uint64_t occupancyMaps[3];
+
     void initializeBoard(std::string fen);
-protected:
-    inline void setBit(uint64_t& bitboard, int square);
-    inline void popBit(uint64_t& bitboard, int square);
-    inline int getBit(uint64_t bitboard, int square);
 public:
     Board();
     Board(std::string& fenString);
-    std::unordered_map<char, uint64_t>& getBitMaps();
-    void undo(int num);
-    void render();
+
+    // abstracted board state manipulation
     void setSquare(char piece, int square);
+    void removeSquare(char piece, int square);
     char getSquare(int square);
+
+    // generates a list of moves encoded in 16-bit representation
+    std::vector<uint16_t> generateLegalMoves();
+    // makes an engine generated move if deemed legal
+    void makeMove(uint16_t move);
+    // makes a player generated move if deemed legal
+    void makeMove(std::string& from, std::string& to);
+    // undo num many moves
+    void undoMove(int num);
+    // calls observer update function to render current board state
+    void render();
 };
 
 #endif

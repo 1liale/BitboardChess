@@ -4,9 +4,8 @@ EXEC = ../build/chess
 PLAYER = player.o human.o computer.o
 DISPLAY = subject.o textObserver.o
 # LEVELS = level.o level1.o level2.o  level3.o level4.o
-# PIECES = piece.o king.o queen.o knight.o bishop.o rook.o pawn.o
-STATE = board.o
-OBJECTS = main.o ${PLAYER} ${LEVELS} ${PIECES} ${STATE} ${DISPLAY}
+STATE = logic.o board.o
+OBJECTS = main.o ${PLAYER} ${LEVELS} ${STATE} ${DISPLAY}
 DEPENDS = ${OBJECTS:.o=.d}
 
 ${EXEC}: ${OBJECTS}

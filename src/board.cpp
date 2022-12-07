@@ -1,21 +1,18 @@
 #include <iostream>
 #include "board.h"
+#include "logic.h"
 
 using namespace std;
+using namespace Logic;
 
 #define FEN_STRING "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
-inline void Board::setBit(uint64_t& bitboard, int square) {
-    bitboard |= (1ULL << square);
-}
-inline void Board::popBit(uint64_t& bitboard, int square) {
-    bitboard &= ~(1ULL << square);
-}
-inline int Board::getBit(uint64_t bitboard, int square) {
-    return (bitboard & (1ULL << square)) ? 1 : 0;
-}
-
 void Board::initializeBoard(string fen) {
+    pieceMaps = {
+        {'p', 0ULL}, {'r', 0ULL},{'n', 0ULL}, {'b', 0ULL}, {'q', 0ULL}, {'k', 0ULL}, 
+        {'P', 0ULL}, {'R', 0ULL},{'N', 0ULL}, {'B', 0ULL}, {'Q', 0ULL}, {'K', 0ULL}
+    };
+    memset(occupancyMaps, 0ULL, sizeof(occupancyMaps));
     int row = 0, col = 0;
     for (char c : fen) {
         // Goes to new row
@@ -31,19 +28,28 @@ void Board::initializeBoard(string fen) {
             ++col;
         }
     }
+
+    // init occupancy maps
+    for (auto& bb : pieceMaps) {
+        int side = isupper(bb.first) ? 0 : 1;
+        occupancyMaps[side] |= pieceMaps[bb.first];
+    }
+    occupancyMaps[2] = occupancyMaps[0] | occupancyMaps[1];
 }
 
 Board::Board() { initializeBoard(FEN_STRING); }
 Board::Board(string& customFen) { initializeBoard(customFen); }
 
-unordered_map<char, uint64_t>& Board::getBitMaps() {
-    return bitmaps;
-}
 void Board::setSquare(char piece, int square) {
-    setBit(bitmaps[piece], square);
+    setBit(pieceMaps[piece], square);
 }
+
+void Board::removeSquare(char piece, int square) {
+    popBit(pieceMaps[piece], square);
+}
+
 char Board::getSquare(int square) {
-    for (auto& bb : bitmaps) {
+    for (auto& bb : pieceMaps) {
         if (getBit(bb.second, square)) {
             return bb.first;
         }
@@ -51,7 +57,15 @@ char Board::getSquare(int square) {
     return '.';
 }
 
-void Board::undo(int num) {
+vector<uint16_t> generateLegalMoves() {
+    return {};
+}
+
+void makeMove(uint16_t move) {}
+
+void makeMove(string from, string to) {}
+
+void Board::undoMove(int num) {
     cout << "undo " << num << " moves" << endl;
 }
 void Board::render() {
