@@ -123,8 +123,8 @@ class Controller {
         isGameSetup = true;
         observers.clear(); 
         observers.push_back(new TextObserver(chessBoard));
-        chessBoard->render();
         // observers.push_back(new GuiObserver(chessBoard));
+        chessBoard->render();
     }
 
 public:

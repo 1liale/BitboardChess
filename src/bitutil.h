@@ -1,9 +1,9 @@
-#ifndef __LOGIC_H__
-#define __LOGIC_H__
+#ifndef __BITUTIL_H__
+#define __BITUTIL_H__
 
 #include <stdint.h>
 
-inline namespace Logic {
+inline namespace bitutil {
     const uint64_t notAFile = 18374403900871474942ULL;
     const uint64_t notHFile = 9187201950435737471ULL;
     const uint64_t notHGFile = 4557430888798830399ULL;

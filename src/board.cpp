@@ -1,9 +1,9 @@
 #include <iostream>
 #include "board.h"
-#include "logic.h"
+#include "bitutil.h"
 
 using namespace std;
-using namespace Logic;
+using namespace bitutil;
 
 #define FEN_STRING "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 

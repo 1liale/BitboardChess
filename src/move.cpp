@@ -1,14 +1,39 @@
 #include "move.h"
 
-// move = flag + dest + origin (ffff dddddd oooooo)
-uint64_t encodeMove(MoveType flag, Square from, Square to) {
-    return ((flag & 0xf) << 12) | ((from & 0x3f) << 6) | (to & 0x3f);
+using namespace std;
+
+constexpr int SOURCE_MASK = 0x3f;
+constexpr int TARGET_MASK = 0x3f << 6;
+constexpr int TYPE_MASK = 0xf << 12; 
+constexpr int CAPTURE_FLAG = 1 << 14;
+constexpr int PROMO_FLAG = 1 << 15;
+
+Move::Move(int source, int target, MoveType moveType): move{0} {
+    move |= source | target << 6 | moveType << 12;
 }
-Move decodeMove(uint16_t move) {
-    Square to = static_cast<Square>(move & 0x3f);
-    move >>= 6;
-    Square from = static_cast<Square>(move & 0x3f);
-    move >>= 6;
-    MoveType flag = static_cast<MoveType>(move & 0xf);
-    return Move{flag, from, to};
+Move::Move(uint16_t move): move{move} {}
+
+int Move::getSource() const {
+    return static_cast<int>(move & SOURCE_MASK);
 }
+
+int Move::getTarget() const {
+    return static_cast<int>((move & TARGET_MASK) >> 6);
+}
+
+MoveType Move::getMoveType() const {
+    return static_cast<MoveType>((move & TYPE_MASK) >> 12);
+}
+
+bool Move::isPromotion() const {
+    return move & PROMO_FLAG;
+}
+
+bool Move::isCapture() const {
+    return move & CAPTURE_FLAG;
+}
+
+bool Move::isCastle() const {
+    MoveType type = getMoveType();
+    return type == K_CASTLE || type == Q_CASTLE;
+} 
