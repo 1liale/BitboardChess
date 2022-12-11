@@ -1,6 +1,7 @@
 #include "move.h"
 
 using namespace std;
+using namespace definitions;
 
 constexpr int SOURCE_MASK = 0x3f;
 constexpr int TARGET_MASK = 0x3f << 6;

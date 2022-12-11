@@ -1,9 +1,10 @@
 #include <iostream>
 #include "board.h"
-#include "bitutil.h"
+#include "util.h"
 
 using namespace std;
 using namespace bitutil;
+using namespace definitions;
 
 #define FEN_STRING "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
@@ -28,8 +29,9 @@ void Board::initializeBoard(string fen) {
             ++col;
         }
     }
-
-    // init occupancy maps
+    computeOccupancyMaps()
+}
+Board::computeOccupancyMaps() {
     for (auto& bb : pieceMaps) {
         int side = isupper(bb.first) ? 0 : 1;
         occupancyMaps[side] |= pieceMaps[bb.first];
@@ -48,7 +50,7 @@ void Board::removeSquare(char piece, int square) {
     popBit(pieceMaps[piece], square);
 }
 
-char Board::getSquare(int square) {
+char Board::getSquare(int square) const {
     for (auto& bb : pieceMaps) {
         if (getBit(bb.second, square)) {
             return bb.first;
@@ -57,17 +59,104 @@ char Board::getSquare(int square) {
     return '.';
 }
 
-vector<uint16_t> generateLegalMoves() {
-    return {};
+uint64_t Board::getOccupancyBySide(int side) const {
+    return occupancyMaps[side];
+}
+uint64_t Board::getEmptySquares() const {
+    return occupancyMaps[2] ^ (~0ULL);
+}
+uint64_t Board::getPieceBB(char piece) const {
+    return pieceMaps[piece];
 }
 
-void makeMove(uint16_t move) {}
-
-void makeMove(string from, string to) {}
-
-void Board::undoMove(int num) {
-    cout << "undo " << num << " moves" << endl;
+int Board::getKingSquare(int side) const {
+    char king = side ? 'K' : 'k';
+    return getLSBIndex(pieceMaps[king]);
 }
+
+vector<uint16_t> Board::generatePawnMoves(int side, vector<uint16_t>& moveslist) {
+    int source, target;
+    MoveType moveType;
+    char piece = side ? 'P' : 'p';
+    uint64_t bitboard = pieceMaps[piece], attacks;
+    const int SQ_SHIFT = 8;
+
+    while (bitboard) {
+        source = getLSBIndex(bitboard);
+        // set target to square in front 
+        target = source + SQ_SHIFT * side == 0 ? -1 : 1;
+
+        // generate pawn quiet moves
+        if (!(target < a8 || target > h1) && !getBit(occupancyMaps[2], target)) {
+            bool isWhitePromo = side == 0 && source >= a7 && source <= h7;
+            bool isBlackPromo = side == 1 && source >= a2 && source <= h2;
+            // promotion
+            if (isWhitePromo || isBlackPromo) {
+                Move promotePawn{source, target, QUEEN_PROMOTION}
+                moveslist.push_back(promotePawn.move);
+            } 
+            // move or double move
+            else {
+                Move singleMovePawn{source, target, DOUBLE_MOVE};
+                moveslist.push_back(singleMovePawn.move);
+                // double move
+                bool isWhiteDouble = side == 0 && source >= a2 && source <= h2;
+                bool isBlackDouble = side == 1 && source >= a7 && source <= h7;
+                int nextTarget = target + SQ_SHIFT * side == 0 ? -1 : 1;
+                if ( (isWhiteDouble || isBlackDouble) && !getBit(occupancyMaps[2], nextTarget)) {
+                    Move doubleMovePawn{source, nextTarget, DOUBLE_MOVE};
+                    moveslist.push_back(doubleMovePawn.move);
+                }
+            }
+        } 
+
+        // generate pawn capture moves
+        attacks = pawnAttacks[side][source] & occupancyMaps[abs(side - 1)];
+        while () {
+            
+        }
+    }
+}
+
+vector<uint16_t> Board::generateKnightMoves(int side, vector<uint16_t>& moveslist) {
+
+}
+
+vector<uint16_t> Board::generateBishopMoves(int side, vector<uint16_t>& moveslist) {
+    
+}
+
+vector<uint16_t> Board::generateRookMoves(int side, vector<uint16_t>& moveslist) {
+    
+}
+
+vector<uint16_t> Board::generateQueenMoves(int side, vector<uint16_t>& moveslist) {
+    
+}
+
+vector<uint16_t> Board::generateKingMoves(int side, vector<uint16_t>& moveslist) {
+    
+}
+
+vector<uint16_t> Board::generateLegalMoves(int side, uint64_t board) {
+    vector<uint16_t> moveslist;
+
+    generatePawnMoves(side, moveslist);
+    generateKnightMoves(side, moveslist);
+    generateBishopMoves(side, moveslist);
+    generateRookMoves(side, moveslist);
+    generateQueenMoves(side, moveslist);
+    generateKingMoves(side, moveslist);
+
+    return moveslist;
+}
+
+void Board::makeMove(uint64_t move) {}
+void Board::makeMove(string& source, string& target) {}
+void Board::makeNullMove() {}
+void Board::undoMove() {}
+void Board::undoNullMove() {}
+
 void Board::render() {
     updateObservers();
 }

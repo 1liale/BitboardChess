@@ -1,4 +1,4 @@
-#include "bitutil.h"
+#include "util.h"
 
 void bitutil::setBit(uint64_t& bitboard, int square) {
     bitboard |= (1ULL << square);
@@ -13,5 +13,5 @@ int bitutil::countBits(uint64_t bitboard) {
     return __builtin_popcountll(bitboard); 
 }
 int bitutil::getLSBIndex(uint64_t bitboard) {
-    return bitboard ? __builtin_ffsll(bitboard) : -1;
+    return __builtin_ffsll(bitboard) - 1;
 }
