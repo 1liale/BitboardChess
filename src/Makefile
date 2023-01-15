@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -g -Wall -MMD -O3
+CXXFLAGS = -std=c++14 -g -Wall -MMD -O3
 EXEC = ../build/chess
 PLAYER = player.o human.o computer.o
 DISPLAY = subject.o textObserver.o

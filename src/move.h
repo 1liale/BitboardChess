@@ -13,10 +13,11 @@ struct Move {
     Move(uint16_t move);
     int getSource() const;
     int getTarget() const;
-    definitions::MoveType getMoveType() const;
+    MoveType getMoveType() const;
     bool isPromotion() const;
     bool isCapture() const;
     bool isCastle() const;
+    bool isEnpassant() const;
 };
 
 #endif

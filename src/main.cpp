@@ -9,11 +9,11 @@
 #include "computer.h"
 #include "observer.h"
 #include "textObserver.h"
-// #include "guiObserver.h"
+// #include "guiObserver.h"  TODO: ADD GUI WHEN ALL ELSE IS COMPLETE
 
 using namespace std;
 
-// IN PROGRESS: PREMATURE OPTIMIZATION IS ROOT OF ALL EVIL
+// REMINDER: PREMATURE OPTIMIZATION IS ROOT OF ALL EVIL
 
 // Controller controls game flow and handles user inputs:
 // commands: 
@@ -21,22 +21,21 @@ using namespace std;
 //     load [fen_string]            loads board state from fen_string
 //     showstat                     show game stats
 //     exit                         clean up memory and exit program
-//     move [org] [dest]            attempts to move piece from org to dest 
-//     forfeit                      player surrenders, prompts user again
+//     move [source] [target] [?p]  move piece from source to target with the option to promote
+//     forfeit                      player surrenders
 
 
 class Controller {
-    int wins, losses, ties; // from player1's POV
+    int wins, losses, draws; // from player1's POV
     Board* chessBoard;
     Player* players[2];
     vector<Observer*> observers;
     bool isGameSetup;
-    int turn;
 
     void printStat() {
-        cout << endl << "Games played: " << (wins + losses + ties) << endl;
-        cout << "Player 1: " << wins << " wins, " << losses << " losses, " << ties << " ties" << endl;
-        cout << "Player 2: " << losses << " wins, " << wins << " losses, " << ties << " ties" << endl << endl; 
+        cout << endl << "Games played: " << (wins + losses + draws) << endl;
+        cout << "Player 1: " << wins << " wins, " << losses << " losses, " << draws << " draws" << endl;
+        cout << "Player 2: " << losses << " wins, " << wins << " losses, " << draws << " draws" << endl << endl; 
     }
 
     void setupPlayers(istringstream& ss) {
@@ -56,17 +55,18 @@ class Controller {
         }
     }
 
+    // TODO: (LOW PRIORITY) ADJUST GAME STATE TO SIDE AND FLAG
     // 0 = lost, 1 = win, 2 = tie
-    void updateGameState(int flag) {
+    void updateGameState(int side, int flag) {
         switch(flag) {
-            case 0:
-                losses++;
+            case ILLEGAL_MOVE:
+                throw runtime_error("Illegal move, try again!");
+            case GAME_OVER:
+                if (side == WHITE_SIDE) ++wins;
+                else ++losses;
                 break;
-            case 1:
-                wins++;
-                break;
-            case 2:
-                ties++;
+            case DRAW:
+                ++draws;
                 break;
             default:
                 break;
@@ -74,39 +74,31 @@ class Controller {
     }
 
     void handleRunningGame(string& command, istringstream& ss) {
-        Player* curPlayer = players[turn % 2];
+        int side = chessBoard->getSide();
+        Player* curPlayer = players[side];
         if (command == "move") {
             int flag = curPlayer->move(chessBoard, ss);
-            if (flag == 2) {
-                cout << endl << "Illegal move, try again!" << endl;
-            } else {
-                if (flag >= 3) {
-                    cout << endl << "Game has ended, you can create a new game or exit" << endl;
-                    isGameSetup = false;
-                }
-                if (flag == 3) flag = turn % 2 + 1;
-                else if (flag == 4) flag = 2;
-                else flag = -1;
-                updateGameState(flag);  
-            }
+            // need to handle illegal move flag + win condition (update score + reset board)
+            updateGameState(side, flag);
         } else if (command == "undo") {
             int num = 1;
             if (!ss.str().empty()) {
                 ss >> num;
             }
-            chessBoard->undoMove(num);
+            for (int i = 0; i < num; ++i) {
+                chessBoard->undoMove();
+            }
         } else if (command == "forfeit") {
-            updateGameState(turn % 2);
+            updateGameState(side, GAME_OVER);
             isGameSetup = false;
         } else {
-            cout << endl << "Command not recognized, try again!" << endl;
+            throw runtime_error("Command not recognized, try again!"); 
         }
     }
 
     void handleSetup(string& command, istringstream& ss) {
         if (command != "game" && command != "load") {
-            cout << endl << "Command not recognized, try again!" << endl;
-            return;
+            throw runtime_error("Command not recognized, try again!"); 
         }
 
         if (command == "game") {
@@ -128,7 +120,7 @@ class Controller {
     }
 
 public:
-    Controller(): wins{0}, losses{0}, ties{0}, chessBoard{nullptr}, isGameSetup{false}, turn{0} {}
+    Controller(): wins{0}, losses{0}, draws{0}, chessBoard{nullptr}, isGameSetup{false} {}
     ~Controller() {
         delete players[0];
         delete players[1];

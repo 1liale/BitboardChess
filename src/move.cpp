@@ -1,7 +1,6 @@
 #include "move.h"
 
 using namespace std;
-using namespace definitions;
 
 constexpr int SOURCE_MASK = 0x3f;
 constexpr int TARGET_MASK = 0x3f << 6;
@@ -38,3 +37,7 @@ bool Move::isCastle() const {
     MoveType type = getMoveType();
     return type == K_CASTLE || type == Q_CASTLE;
 } 
+
+bool Move::isEnpassant() const {
+    return getMoveType() == EN_PASSANT;
+}

@@ -3,3 +3,7 @@
 .*.d
 .*.o
 .vscode/
+src/reference.c
+src/reference2.js
+src/Makefile
+.DS_STORE
