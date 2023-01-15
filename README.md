@@ -6,7 +6,7 @@ BitboardChess is an ongoing passion project that I started working on December 1
 It is written from scratch in C++14. This project is meant to challenge myself and offer significant improvement to my first chess engine written
 for the CS246 (Object-Oriented Software Development) end of term project.
 
-For the sake academic integrity, I cannot release that project publicly. However, it is available upon request.
+For the sake of academic integrity, I cannot release that project publicly. However, it is available upon request for potential employers.
 
 ## How it works
 
@@ -31,10 +31,11 @@ A disadvantage of making a bitboard chess egine is that it isn't conceptually in
 
 ## Next Steps
 - Implement UCI protocols to compare against other engines and obtain an accurate ELO evaluation
-- Introduce an implementation of the ConcreteObserver for GUI (only text-based interection is supported at this time)
+- Implement a Concrete Observer for GUI (only text-based interection is supported at this time)
 - Explore the use of various engine heuristics and techniques such as:
 1. Piece square tables
 2. Move ordering (Null, Killer, and History heuristics)
 3. Negamax tree search
 4. Transpositional table
 5. (optionally) PolyGlot opening book support
+6. (optionally) neural network trained weights for evalutaion used in StockFish 15
