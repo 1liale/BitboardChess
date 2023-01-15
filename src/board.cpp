@@ -6,10 +6,7 @@ using namespace std;
 using namespace bitutil;
 using namespace helpers;
 
-#define DEFAULT_FEN "8/8/8/3R3p/8/8/P7/8"
-// #define DEFAULT_FEN "8/1p6/2P5/8/8/8/P7/8"
-// #define DEFAULT_FEN "8/8/2n5/8/8/3K4/8/8"
-// #define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 ///////////////////////  INITIALIZATION  /////////////////////// 
 
@@ -36,7 +33,6 @@ void Board::initializeBoard(string fen) {
     }
     computeOccupancyMaps();
     computeAttackBoards();
-    // initMagics(); TODO: initialize magic bitboards
 }
 
 void Board::computeOccupancyMaps() {
