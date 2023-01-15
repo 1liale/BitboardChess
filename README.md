@@ -3,8 +3,8 @@
 ## About
 BitboardChess is an ongoing passion project that I started working on December 1st, 2022.
 
-It is written from scratch in C++ and was meant to be both a challenge to myself and a significant improvement on the first chess engine written
-for the CS246 (Object-Oriented Software Development) end of term project. 
+It is written from scratch in C++14. This project is meant to challenge myself and offer significant improvement to my first chess engine written
+for the CS246 (Object-Oriented Software Development) end of term project.
 
 For the sake academic integrity, I cannot release that project publicly. However, it is available upon request.
 
