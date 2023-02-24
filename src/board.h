@@ -11,9 +11,11 @@ class Board : public Subject {
     struct MadeMove {
         uint16_t move;
         char sourcePiece, targetPiece;
+        int castlingRight;
     };
 private:
-    int ply, fifty;
+    int ply, fifty, castlingRight;
+    uint64_t hashKey;
     std::unordered_map<char, uint64_t> pieceMaps; // bb for each of the 12 pieces
     uint64_t occupancyMaps[3]; // bb for white, black, and both sides
     std::vector<std::vector<char>> playerPieces;
@@ -76,10 +78,17 @@ public:
     
     // makes an engine generated move if deemed legal
     int makeMove(uint16_t move);
+    // makes move based on user input
     int makeMove(std::string& source, std::string& target, char promote); 
-    void makeNullMove();
     void undoMove();
+
+    // for search optimatization
+    void makeNullMove();
     void undoNullMove();
+
+    // evaluates current game state
+    int checkGameState(int side);
+    
     // calls observer update function to render current board state
     void render();
 };

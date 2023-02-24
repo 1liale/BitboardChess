@@ -1,8 +1,9 @@
 #include "computer.h"
+#include "util.h"
 
 using namespace std;
 
 Computer::Computer(bool isWhite, string& level) : Player{isWhite} {}
 int Computer::move(Board* chessBoard, istringstream &ss) {
-    return 0;
+    return GAME_OVER;
 }

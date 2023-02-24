@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "Building..."
+[[ "$1" == "DEBUG" ]] && make -s -C src/ debug || make -s -C src/
+
+if [ "$1" == "DEBUG" ]; then
+    lldb ./chess
+elif [ "$1" == "TEST" ]; then
+    echo "Testing BitboardChess..."
+    cd tests
+    errlog=$(mktemp)
+    for FILE in *; do
+        echo "Running test: $FILE";
+        ../chess < $FILE > /dev/null 2> "$errlog"
+        cat "$errlog"
+        [[ -s $errlog ]] && echo "failed" || echo "passed"
+        rm -f "$errlog"
+    done
+    cd ..
+else
+    echo "Running BitboardChess..."
+    ./chess
+fi
+
+

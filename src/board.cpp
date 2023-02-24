@@ -6,11 +6,23 @@ using namespace std;
 using namespace bitutil;
 using namespace helpers;
 
-#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+
+#ifdef DEBUG
+    #define DEFAULT_FEN "6k1/PP3ppp/p7/P7/8/7P/1p3PPP/3R2K1"
+#else
+    #define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+#endif
 
 ///////////////////////  INITIALIZATION  /////////////////////// 
 
 void Board::initializeBoard(string fen) {
+    ply = 0;
+    fifty = 0;
+    #ifdef DEBUG
+    castlingRight = 0;
+    #else
+    castlingRight = 15;
+    #endif
     pieceMaps = {
         {'p', 0ULL}, {'r', 0ULL},{'n', 0ULL}, {'b', 0ULL}, {'q', 0ULL}, {'k', 0ULL}, 
         {'P', 0ULL}, {'R', 0ULL},{'N', 0ULL}, {'B', 0ULL}, {'Q', 0ULL}, {'K', 0ULL}
@@ -90,7 +102,7 @@ void Board::removeSquare(char piece, int square) {
     popBit(pieceMaps[piece], square);
 }
 char Board::getSquare(int square) const {
-    for (auto& bb : pieceMaps) {
+    for (const auto& bb : pieceMaps) {
         if (getBit(bb.second, square)) {
             return bb.first;
         }
@@ -100,7 +112,7 @@ char Board::getSquare(int square) const {
 
 // useful functionalities
 int Board::getSide() const {
-    return ply;
+    return ply % 2;
 } 
 uint64_t Board::getOccupancyBySide(int side) const {
     return occupancyMaps[side];
@@ -248,27 +260,27 @@ void Board::generateKnightMoves(int side, vector<uint16_t>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'N' : 'n';
     uint64_t bitboard = pieceMaps[piece], attacks;
+    Move knightMove;
 
     // checks each knight square
     while (bitboard) {
         source = getLSBIndex(bitboard);
 
         // generate knight moves
-        attacks = knightAttacks[source] & ~occupancyMaps[abs(side - 1)];
+        attacks = knightAttacks[source] & ~occupancyMaps[side];
 
         while (attacks) {
             target = getLSBIndex(attacks);
             char targetPiece = getSquare(target);
-            
             // quiet move
             if (targetPiece == '.') {
-                Move moveKnight {source, target, QUIET};
-                moveslist.push_back(moveKnight.move);
+                knightMove = Move{source, target, QUIET};
             } 
             // capture move
             else {
-                Move captureKnight {source, target, CAPTURE};
+                knightMove = Move{source, target, CAPTURE};
             }
+            moveslist.push_back(knightMove.move);
             popBit(attacks, target);
         }
         popBit(bitboard, source);
@@ -279,6 +291,7 @@ void Board::generateKingMoves(int side, vector<uint16_t>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'K' : 'k';
     uint64_t bitboard = pieceMaps[piece], attacks;
+    Move kingMove;
 
     while(bitboard) {
         source = getLSBIndex(bitboard);
@@ -288,14 +301,13 @@ void Board::generateKingMoves(int side, vector<uint16_t>& moveslist) {
             target = getLSBIndex(attacks);
             // quiet
             if (!getBit(occupancyMaps[side ^ 1], target)) {
-                Move moveKing{source, target, QUIET};
-                moveslist.push_back(moveKing.move);
+                kingMove = Move{source, target, QUIET};
             } 
             // capture
             else {
-                Move captureKing{source, target, CAPTURE};
-                moveslist.push_back(captureKing.move);
+                kingMove = Move{source, target, CAPTURE};
             }
+            moveslist.push_back(kingMove.move);
             popBit(attacks, target);
         }
 
@@ -307,6 +319,7 @@ void Board::generateBishopMoves(int side, vector<uint16_t>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'B' : 'b';
     uint64_t bitboard = pieceMaps[piece], attacks;
+    Move bishopMove;
 
     while (bitboard) {
         source = getLSBIndex(bitboard);
@@ -316,14 +329,13 @@ void Board::generateBishopMoves(int side, vector<uint16_t>& moveslist) {
             target = getLSBIndex(attacks);
             // quiet
             if (!getBit(occupancyMaps[side ^ 1], target)) {
-                Move moveBishop{source, target, QUIET};
-                moveslist.push_back(moveBishop.move);
+                bishopMove = Move{source, target, QUIET};
             } 
             // capture
             else {
-                Move captureBishop{source, target, CAPTURE};
-                moveslist.push_back(captureBishop.move);
+                bishopMove = Move{source, target, CAPTURE};
             }
+            moveslist.push_back(bishopMove.move);
             popBit(attacks, target);
         }
         popBit(bitboard, source);
@@ -334,8 +346,9 @@ void Board::generateRookMoves(int side, vector<uint16_t>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'R' : 'r';
     uint64_t bitboard = pieceMaps[piece], attacks;
+    Move rookMove;
 
-     while (bitboard) {
+    while (bitboard) {
         source = getLSBIndex(bitboard);
         attacks = getRookAttacks(source, occupancyMaps[BOTH_SIDE]) & ~occupancyMaps[side];
 
@@ -343,14 +356,13 @@ void Board::generateRookMoves(int side, vector<uint16_t>& moveslist) {
             target = getLSBIndex(attacks);
             // quiet
             if (!getBit(occupancyMaps[side ^ 1], target)) {
-                Move moveRook{source, target, QUIET};
-                moveslist.push_back(moveRook.move);
+                rookMove = Move{source, target, QUIET};
             } 
             // capture
             else {
-                Move captureRook{source, target, CAPTURE};
-                moveslist.push_back(captureRook.move);
+                rookMove = Move{source, target, CAPTURE};
             }
+            moveslist.push_back(rookMove.move);
             popBit(attacks, target);
         }
         popBit(bitboard, source);
@@ -361,6 +373,7 @@ void Board::generateQueenMoves(int side, vector<uint16_t>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'Q' : 'q';
     uint64_t bitboard = pieceMaps[piece], attacks;
+    Move queenMove;
 
      while (bitboard) {
         source = getLSBIndex(bitboard);
@@ -370,23 +383,77 @@ void Board::generateQueenMoves(int side, vector<uint16_t>& moveslist) {
             target = getLSBIndex(attacks);
             // quiet
             if (!getBit(occupancyMaps[side ^ 1], target)) {
-                Move moveQueen{source, target, QUIET};
-                moveslist.push_back(moveQueen.move);
+                queenMove = Move{source, target, QUIET};
             } 
             // capture
             else {
-                Move captureQueen{source, target, CAPTURE};
-                moveslist.push_back(captureQueen.move);
+                queenMove = Move{source, target, CAPTURE};
             }
+            moveslist.push_back(queenMove.move);
             popBit(attacks, target);
         }
         popBit(bitboard, source);
     }
 }
 
-// En-passant and castling TODO: IMPLEMENT AFTER SLIDERS
 void Board::generateSpecialMoves(int side, vector<uint16_t>& moveslist) {
+    Move specialMove;
 
+    // generates en-passant
+    if (!moveHistory.empty()) {
+        MadeMove &lastMove = moveHistory.back();
+        Move move{lastMove.move};
+
+        int target = move.getTarget();
+        int source = move.getSource();
+
+        char pawn = side == WHITE_SIDE ? 'P' : 'p';
+        char oppPawn = side == WHITE_SIDE ? 'p' : 'P';
+        if (lastMove.sourcePiece == oppPawn && move.getMoveType() == DOUBLE_MOVE) {
+            int nextTarget = source + BOARD_WIDTH * (side == WHITE_SIDE ? 1 : -1);
+            
+            if (target != a5 && target != a4 && getBit(pieceMaps[pawn], target - 1)) {
+                specialMove = Move{target - 1, nextTarget, EN_PASSANT};
+                moveslist.push_back(specialMove.move);
+            } 
+            if (target != h5 && target != h4 && getBit(pieceMaps[pawn], target + 1)) {
+                specialMove = Move{target + 1, nextTarget, EN_PASSANT};
+                moveslist.push_back(specialMove.move);
+            }
+        }
+    }
+    
+    int kingSquare = getKingSquare(side);
+    #ifdef DEBUG
+        // cout << "king square: " << positions[kingSquare] << endl;
+        // cout << bitset<4>(castlingRight) << endl;
+        // cout << bitset<4>(castlingSideMask[side][0]) << endl;
+    #endif 
+    // handles king-side castle
+    if (castlingRight & castlingSideMask[side][0]) {
+        // checks that no obstacle on castling path
+        if (!(getBit(occupancyMaps[BOTH_SIDE], kingSquare + 1) || 
+              getBit(occupancyMaps[BOTH_SIDE], kingSquare + 2))) {
+            if (!(isSquareAttacked(side, kingSquare + 1) ||
+                  isSquareAttacked(side, kingSquare + 2))) {
+                specialMove = Move{kingSquare, kingSquare + 2, K_CASTLE};
+                moveslist.push_back(specialMove.move);
+            }
+        }
+    }
+    // checks right-castle
+    if (castlingRight & castlingSideMask[side][1]) {
+        // checks that no obstacle on castling path
+        if (!(getBit(occupancyMaps[BOTH_SIDE], kingSquare - 1) || 
+              getBit(occupancyMaps[BOTH_SIDE], kingSquare - 2) ||
+              getBit(occupancyMaps[BOTH_SIDE], kingSquare - 3))) {
+            if (!(isSquareAttacked(side, kingSquare - 1) ||
+                  isSquareAttacked(side, kingSquare - 2))) {
+                specialMove = Move{kingSquare, kingSquare - 2, Q_CASTLE};
+                moveslist.push_back(specialMove.move);
+            }
+        }
+    }
 }
 
 vector<uint16_t> Board::generatePseudoMoves(int side) {
@@ -398,7 +465,7 @@ vector<uint16_t> Board::generatePseudoMoves(int side) {
     generateBishopMoves(side, moveslist);
     generateRookMoves(side, moveslist);
     generateQueenMoves(side, moveslist);
-    // generateSpecialMoves(side, moveslist)
+    generateSpecialMoves(side, moveslist);
 
     return moveslist;
 }
@@ -407,9 +474,9 @@ vector<uint16_t> Board::generateLegalMoves(int side) {
     vector<uint16_t> moveslist = generatePseudoMoves(side), legalMoves;
     for (auto move : moveslist) {
         int moveFlag = makeMove(move);
-        undoMove();
         if (moveFlag == ILLEGAL_MOVE) continue; // skip illegal move
         legalMoves.push_back(move);
+        undoMove();
     }
     return legalMoves;
 }
@@ -418,6 +485,7 @@ vector<uint16_t> Board::generateLegalMoves(int side) {
 
 // handles pseudo-legal move from human and computer
 int Board::makeMove(uint16_t pseudoMove) {
+    int side = getSide();
     ++ply;
     ++fifty;
 
@@ -427,31 +495,93 @@ int Board::makeMove(uint16_t pseudoMove) {
     MoveType moveType = move.getMoveType();
     char sourcePiece = getSquare(source);
     char targetPiece = getSquare(target);
-
-    moveHistory.push_back({pseudoMove, sourcePiece, targetPiece}); // stores state before move
     
-    popBit(pieceMaps[sourcePiece], source);
-    setBit(pieceMaps[sourcePiece], target);
+    // moves sourcePiece to designated square
+    removeSquare(sourcePiece, source);
+    setSquare(sourcePiece, target);
 
     if (tolower(sourcePiece) == 'p') fifty = 0;
-    if (moveType == CAPTURE) {
+    // removes the en-passented pawn
+    if (moveType == EN_PASSANT) {
+        char oppPawn = side == WHITE_SIDE ? 'p' : 'P';
+        int oppPawnSquare = target + BOARD_WIDTH * (1 - 2 * side);
+        targetPiece = oppPawn;
+        removeSquare(targetPiece, oppPawnSquare);
+    } 
+    // moves the king side rook for castling
+    else if (moveType == K_CASTLE) {
+        char castlingRook = side == WHITE_SIDE ? 'R' : 'r';
+        targetPiece = castlingRook;
+        removeSquare(castlingRook, target + 1);
+        setSquare(castlingRook, target - 1);
+    } 
+    // moves the queen side rook for castling
+    else if (moveType == Q_CASTLE) {
+        char castlingRook = side == WHITE_SIDE ? 'R' : 'r'; 
+        targetPiece = castlingRook;
+        removeSquare(castlingRook, target - 2);
+        setSquare(castlingRook, target + 1);
+    } 
+    // removes captured piece
+    else if (moveType == CAPTURE) {
         fifty = 0;
-        if (targetPiece != '.') 
-            popBit(pieceMaps[targetPiece], target);
+        if (targetPiece != '.')  removeSquare(targetPiece, target);
+    } 
+    // replaces pawn by promoted piece
+    else if (moveType >= KNIGHT_PROMOTION) {
+        removeSquare(sourcePiece, target);
+
+        if (moveType >= KNIGHT_PROMOTION_CAPTURE) {
+            if (targetPiece != '.') removeSquare(targetPiece, target);
+        }
+        // sets sourcePiece to the intended promotion piece
+        switch((moveType - 8) % 4) {
+            case 0:
+                sourcePiece = side == WHITE_SIDE ? 'N' : 'n';
+                break;
+            case 1:
+                sourcePiece = side == WHITE_SIDE ? 'B' : 'b';
+                break;
+            case 2:
+                sourcePiece = side == WHITE_SIDE ? 'R' : 'r';
+                break;
+            case 3:
+                sourcePiece = side == WHITE_SIDE ? 'Q' : 'q';
+                break;
+        }
+        setSquare(sourcePiece, target);
     }
 
-    // re-compute occupancies
+    // stores move history
+    moveHistory.push_back({ pseudoMove, sourcePiece, targetPiece, castlingRight });
+    
+    #ifdef DEBUG
+    // cout << "updating castlingRight:" << bitset<4>(castlingRight) << endl;
+    // cout << positions[source] << ": " << bitset<4>(castlingRightsTable[source]) << endl;
+    // cout << positions[target] << ": " << bitset<4>(castlingRightsTable[target]) << endl;
+    #endif
+    castlingRight &= castlingRightsTable[source];
+    castlingRight &= castlingRightsTable[target];
+
+    // re-computes occupancies
     computeOccupancyMaps();
 
+    // returns illegal move if king is left in check
+    if(isKingInCheck(side)) {
+        undoMove();
+        return ILLEGAL_MOVE;
+    }
     return LEGAL_MOVE;
 }
 
 // handles human player move
 int Board::makeMove(string& sourceStr, string& targetStr, char promote = 'x') {
-    vector<uint16_t> moveslist = generateLegalMoves(ply);
-    // if (moveslist.size() == 0 && isKingInCheck(ply)) return GAME_OVER;
-
+    int side = getSide();
+    vector<uint16_t> moveslist = generateLegalMoves(side);
+    // vector<uint16_t> moveslist = generatePseudoMoves(side);
+#ifdef DEBUG
     cout << "legal moves: " << moveslist.size() << endl;
+#endif
     int source = getSquareFromStr(sourceStr);
     int target = getSquareFromStr(targetStr);
 
@@ -466,22 +596,30 @@ int Board::makeMove(string& sourceStr, string& targetStr, char promote = 'x') {
             MoveType moveType = legalMove.getMoveType();
             if(moveType >= KNIGHT_PROMOTION) {
                 bool validPromotion = false;
+                // promotion to knight
                 if (tolower(promote) == 'n' && (moveType == KNIGHT_PROMOTION || moveType == KNIGHT_PROMOTION_CAPTURE)) {
                     validPromotion = true;
                 }
+                // promotion to bishop
                 else if (tolower(promote) == 'b' && (moveType == BISHOP_PROMOTION || moveType == BISHOP_PROMOTION_CAPTURE)) {
                     validPromotion = true;
                 }
+                // promotion to rook
                 else if (tolower(promote) == 'r' && (moveType == ROOK_PROMOTION || moveType == ROOK_PROMOTION_CAPTURE)) {
                     validPromotion = true;
                 }
-                else if (tolower(promote) == 'q' && (moveType == QUEEN_PROMOTION || moveType == QUEEN_PROMOTION_CAPTURE)) {
+                // promotion to queen by default
+                else if ((tolower(promote) == 'q' || promote == 'x') && (moveType == QUEEN_PROMOTION || moveType == QUEEN_PROMOTION_CAPTURE)) {
                     validPromotion = true;
                 }
-
+                
+                // makes promotions if valid
                 if (validPromotion) { 
+                    #ifdef DEBUG
+                        cout << "promote: " << promote << " " << legalMove << endl;
+                    #endif
                     return makeMove(legalMove.move);
-                }
+                } 
             } else {
                 if (promote != 'x') break;
                 return makeMove(legalMove.move); 
@@ -494,6 +632,10 @@ int Board::makeMove(string& sourceStr, string& targetStr, char promote = 'x') {
 }
 // takes back a previous move
 void Board::undoMove() {
+    if (ply == 0 || moveHistory.empty()) {
+        throw runtime_error("Make a move first to undo move!");
+    } // no moves to undo
+    int side = getSide();
     --ply;
     MadeMove madeMove = moveHistory.back();
     moveHistory.pop_back();
@@ -503,21 +645,73 @@ void Board::undoMove() {
     MoveType moveType = move.getMoveType(); 
     char sourcePiece = madeMove.sourcePiece;
     char targetPiece = madeMove.targetPiece;
+    castlingRight = madeMove.castlingRight;
     
-    popBit(pieceMaps[sourcePiece], target);
-    setBit(pieceMaps[sourcePiece], source);
+    removeSquare(sourcePiece, target);
+    setSquare(sourcePiece, source);
 
-    // restore captured piece
-    if (moveType == CAPTURE) {
+    // restores en-passanted piece
+    if (moveType == EN_PASSANT) {
+        int enpassantSquare = target - BOARD_WIDTH * (1 - 2 * side);
+        setSquare(targetPiece, enpassantSquare);
+    } else if (moveType == K_CASTLE) {
+        removeSquare(targetPiece, target - 1);
+        setSquare(targetPiece, target + 1);
+    } else if (moveType == Q_CASTLE) {
+        removeSquare(targetPiece, target + 1);
+        setSquare(targetPiece, target - 2);
+    }
+    // restores captured piece
+    else if (moveType == CAPTURE) {
         setBit(pieceMaps[targetPiece], target);
+    } 
+    // retores promoted pawn
+    else if (moveType >= KNIGHT_PROMOTION) {
+        removeSquare(sourcePiece, source);
+        setSquare(side == WHITE_SIDE ? 'p' : 'P', source);
+        if (moveType >= KNIGHT_PROMOTION_CAPTURE) {
+            setSquare(targetPiece, target);
+        }
+        #ifdef DEBUG
+            cout << "source: " << positions[source] << endl;
+            cout << "target: " << positions[target] << endl;
+            cout << sourcePiece << ", " << targetPiece << endl;
+            cout << "undo move: " << move << endl;
+        #endif
+        removeSquare(sourcePiece, target);
     }
 
+    // recomputes occupancy maps
     computeOccupancyMaps();
 }
 
 // TODO: IMPLEMENT FOR NEGAMAX OPTIMIZATION (LOW PRIORITY)
 void Board::makeNullMove() {}
 void Board::undoNullMove() {}
+
+// evalutates current game state
+int Board::checkGameState(int side) {
+    #ifdef DEBUG
+    cout << "checking game state" << endl;
+    #endif
+    if (fifty == 50) return DRAW;
+    vector<uint16_t> legalMoves = generateLegalMoves(side);
+    #ifdef DEBUG
+    // cout << "moves available: " << legalMoves.size() << endl;
+    // for (auto & move: legalMoves) {
+    //     cout << Move{move} << endl;
+    // }    
+    #endif
+    if (legalMoves.empty()) {
+        if (isKingInCheck(side)) return GAME_OVER;
+        else return DRAW;
+    } 
+    
+    if (isKingInCheck(side)) {
+        cout << "Check!" << endl;
+    }
+    return LEGAL_MOVE;
+}
 
 ///////////////////////  OBSERVER UPDATE /////////////////////// 
 

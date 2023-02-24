@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Cleaning build files"
+make -s -C src/ clean

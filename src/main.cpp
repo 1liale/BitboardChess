@@ -13,8 +13,6 @@
 
 using namespace std;
 
-// REMINDER: PREMATURE OPTIMIZATION IS ROOT OF ALL EVIL
-
 // Controller controls game flow and handles user inputs:
 // commands: 
 //     game [player1] [player2]     starts a new game
@@ -59,16 +57,15 @@ class Controller {
     // 0 = lost, 1 = win, 2 = tie
     void updateGameState(int side, int flag) {
         switch(flag) {
-            case ILLEGAL_MOVE:
-                throw runtime_error("Illegal move, try again!");
             case GAME_OVER:
-                if (side == WHITE_SIDE) ++wins;
+                if (side != WHITE_SIDE) ++wins;
                 else ++losses;
+                isGameSetup = false;
+                cout << "Checkmate! " << (side == WHITE_SIDE ? "White" : "Black") << " won!" << endl;
                 break;
             case DRAW:
                 ++draws;
-                break;
-            default:
+                cout << "Draw!" << endl;
                 break;
         }
     }
@@ -76,10 +73,12 @@ class Controller {
     void handleRunningGame(string& command, istringstream& ss) {
         int side = chessBoard->getSide();
         Player* curPlayer = players[side];
+
         if (command == "move") {
-            int flag = curPlayer->move(chessBoard, ss);
-            // need to handle illegal move flag + win condition (update score + reset board)
+            curPlayer->move(chessBoard, ss);
+            int flag = chessBoard->checkGameState(side ^ 1);
             updateGameState(side, flag);
+            chessBoard->render();
         } else if (command == "undo") {
             int num = 1;
             if (!ss.str().empty()) {
@@ -88,9 +87,9 @@ class Controller {
             for (int i = 0; i < num; ++i) {
                 chessBoard->undoMove();
             }
+            chessBoard->render();
         } else if (command == "forfeit") {
             updateGameState(side, GAME_OVER);
-            isGameSetup = false;
         } else {
             throw runtime_error("Command not recognized, try again!"); 
         }
@@ -105,7 +104,6 @@ class Controller {
             chessBoard = new Board();
             setupPlayers(ss);
         } 
-        // not essential, leave as is for now
         else if (command == "load") {
             setupPlayers(ss);
             string fenString;
@@ -122,8 +120,6 @@ class Controller {
 public:
     Controller(): wins{0}, losses{0}, draws{0}, chessBoard{nullptr}, isGameSetup{false} {}
     ~Controller() {
-        delete players[0];
-        delete players[1];
         delete chessBoard;
     }
     void start() {
@@ -143,7 +139,6 @@ public:
 
                 if (isGameSetup) {
                     handleRunningGame(command, ss);
-                    chessBoard->render();
                 } else {
                     handleSetup(command, ss);
                 }
@@ -155,6 +150,9 @@ public:
 };
 
 int main() {
+#ifdef DEBUG
+    cout << "(DEBUG MODE)" << endl;
+#endif
     Controller game{};
     game.start();
     return 0;

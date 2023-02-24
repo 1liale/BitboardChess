@@ -11,5 +11,7 @@ int Human::move(Board* chessBoard, istringstream &ss) {
     ss >> source;
     ss >> target;
     ss >> promote;
-    return chessBoard->makeMove(source, target, promote);
+    int flag = chessBoard->makeMove(source, target, promote); 
+    if (flag == ILLEGAL_MOVE) throw runtime_error("Illegal Move!");
+    return flag;
 }

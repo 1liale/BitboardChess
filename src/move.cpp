@@ -41,3 +41,11 @@ bool Move::isCastle() const {
 bool Move::isEnpassant() const {
     return getMoveType() == EN_PASSANT;
 }
+
+std::ostream& operator<<(std::ostream& out, const Move& move) {
+    int source = move.getSource();
+    int target = move.getTarget();
+    MoveType type = move.getMoveType();
+
+    return out << "(" << positions[source] << ", " << positions[target] << ", " << moveTypeStr[type] << ")" << endl;
+}

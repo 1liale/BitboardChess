@@ -2,6 +2,7 @@
 #define __MOVE_H__
 
 #include <stdint.h>
+#include <iostream>
 #include "util.h"
 
 // Move type defined following the From-To Based format
@@ -9,6 +10,7 @@
 
 struct Move {
     uint16_t move; // 16-bit move encoding (6 source, 6 target, 4 flag)
+    Move() = default;
     Move(int source, int target, MoveType moveType);
     Move(uint16_t move);
     int getSource() const;
@@ -18,6 +20,7 @@ struct Move {
     bool isCapture() const;
     bool isCastle() const;
     bool isEnpassant() const;
+    friend std::ostream& operator<<(std::ostream& out, const Move& move);
 };
 
 #endif

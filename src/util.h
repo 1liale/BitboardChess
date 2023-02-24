@@ -29,7 +29,7 @@ const static std::string positions[64] {
     "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
-}; // FOR TESTING PURPOSES MOSTLY
+};
 enum MoveType {
     QUIET = 0, 
     DOUBLE_MOVE = 1, 
@@ -49,6 +49,24 @@ enum MoveType {
     BISHOP_PROMOTION_CAPTURE = 13,
     ROOK_PROMOTION_CAPTURE = 14,
     QUEEN_PROMOTION_CAPTURE = 15
+};
+static const std::string moveTypeStr[] = {
+    "QUIET", 
+    "DOUBLE_MOVE", 
+    "K_CASTLE", 
+    "Q_CASTLE", 
+    "CAPTURE",
+    "EN_PASSANT", 
+    "IGNORE1",
+    "IGNORE2",
+    "KNIGHT_PROMOTION",
+    "BISHOP_PROMOTION",
+    "ROOK_PROMOTION",
+    "QUEEN_PROMOTION",
+    "KNIGHT_PROMOTION_CAPTURE",
+    "BISHOP_PROMOTION_CAPTURE",
+    "ROOK_PROMOTION_CAPTURE",
+    "QUEEN_PROMOTION_CAPTURE"
 };
 
 enum Flag {
@@ -221,6 +239,24 @@ const static int bishopIndexBits[64] = {
     5, 5, 7, 7, 7, 7, 5, 5,
     5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6
+};
+
+// Using the castling convention described in Monkey King's Didactic Chess,
+// full credits to Monkey King
+const static int castlingSideMask[2][2] = {
+    {1, 2}, 
+    {4, 8}
+};
+
+const static int castlingRightsTable[64] = {
+    7, 15, 15, 15,  3, 15, 15, 11,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    13, 15, 15, 15, 12, 15, 15, 14
 };
 
 inline namespace bitutil {
