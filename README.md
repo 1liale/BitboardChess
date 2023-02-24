@@ -1,5 +1,14 @@
 # BitboardChess
 
+## How to run locally
+```
+1. git clone {repo}
+2. ./clean // To clean previous Makefile created objects 
+(Call when switching between DEBUG, TEST or NORMAL play modes)
+3. ./play [MODE] (MODE options: DEBUG, TEST, NORMAL / default no param) 
+* Note: DEBUG includes additional debug messages and TEST runs a local test suite to evaluate move generation
+```
+
 ## About
 BitboardChess is an ongoing passion project that I started working on December 1st, 2022.
 
