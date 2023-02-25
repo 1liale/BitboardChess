@@ -11,9 +11,9 @@ CXXFLAGS := -std=c++14 -Wall -MMD -O3
 EXEC = ${TARGET_DIR}/${TARGET}
 PLAYER = player.o human.o computer.o
 DISPLAY = subject.o textObserver.o
-# LEVELS = level.o level1.o level2.o  level3.o level4.o
+ENGINES = engine.o basicEngine.o seqEngine.o parallelEngine.o
 STATE = board.o util.o move.o
-OBJECTS = main.o ${PLAYER} ${LEVELS} ${STATE} ${DISPLAY}
+OBJECTS = main.o ${PLAYER} ${ENGINES} ${STATE} ${DISPLAY}
 DEPENDS = ${OBJECTS:.o=.d}
 
 ${EXEC}: ${OBJECTS}

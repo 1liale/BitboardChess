@@ -43,13 +43,13 @@ class Controller {
         if (white == "human") {
             players[0] = new Human(true);
         } else {
-            players[0] = new Computer(true, white);
+            players[0] = new Computer(true, white, chessBoard);
         }
 
         if (black == "human") {
             players[1] = new Human(false);
         } else {
-            players[1] = new Computer(false, black);
+            players[1] = new Computer(false, black, chessBoard);
         }
     }
 
@@ -121,6 +121,8 @@ public:
     Controller(): wins{0}, losses{0}, draws{0}, chessBoard{nullptr}, isGameSetup{false} {}
     ~Controller() {
         delete chessBoard;
+        delete players[0];
+        delete players[1];
     }
     void start() {
         string inputs;

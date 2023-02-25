@@ -15,7 +15,7 @@ class Board : public Subject {
     };
 private:
     int ply, fifty, castlingRight;
-    uint64_t hashKey;
+    // uint64_t hashKey; // TODO: Implement Zobrist hashing
     std::unordered_map<char, uint64_t> pieceMaps; // bb for each of the 12 pieces
     uint64_t occupancyMaps[3]; // bb for white, black, and both sides
     std::vector<std::vector<char>> playerPieces;

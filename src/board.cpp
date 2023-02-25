@@ -18,11 +18,7 @@ using namespace helpers;
 void Board::initializeBoard(string fen) {
     ply = 0;
     fifty = 0;
-    #ifdef DEBUG
-    castlingRight = 0;
-    #else
     castlingRight = 15;
-    #endif
     pieceMaps = {
         {'p', 0ULL}, {'r', 0ULL},{'n', 0ULL}, {'b', 0ULL}, {'q', 0ULL}, {'k', 0ULL}, 
         {'P', 0ULL}, {'R', 0ULL},{'N', 0ULL}, {'B', 0ULL}, {'Q', 0ULL}, {'K', 0ULL}
@@ -694,7 +690,7 @@ int Board::checkGameState(int side) {
     #ifdef DEBUG
     cout << "checking game state" << endl;
     #endif
-    if (fifty == 50) return DRAW;
+    if (fifty == 100) return DRAW;
     vector<uint16_t> legalMoves = generateLegalMoves(side);
     #ifdef DEBUG
     // cout << "moves available: " << legalMoves.size() << endl;
