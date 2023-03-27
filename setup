@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# builds docker container
+docker build -t build/chess:0.1 -f Dockerfile .
+
+# run docker container with target mount
+docker run -it --rm --name=chess \
+	--mount type=bind,source=${PWD},target=/src \
+	build/chess:0.1 \
+	bash

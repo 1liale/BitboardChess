@@ -24,5 +24,5 @@ ${EXEC}: ${OBJECTS}
 clean:
 	@rm ${DEPENDS} ${OBJECTS} ${EXEC}
 
-debug: CXXFLAGS += -DDEBUG -g 
+debug: CXXFLAGS += -DDEBUG -g -fsanitize=address 
 debug: ${EXEC}

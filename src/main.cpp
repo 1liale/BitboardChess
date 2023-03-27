@@ -9,7 +9,6 @@
 #include "computer.h"
 #include "observer.h"
 #include "textObserver.h"
-// #include "guiObserver.h"  TODO: ADD GUI WHEN ALL ELSE IS COMPLETE
 
 using namespace std;
 
@@ -26,7 +25,7 @@ using namespace std;
 class Controller {
     int wins, losses, draws; // from player1's POV
     Board* chessBoard;
-    Player* players[2];
+    vector<Player*> players;
     vector<Observer*> observers;
     bool isGameSetup;
 
@@ -37,6 +36,7 @@ class Controller {
     }
 
     void setupPlayers(istringstream& ss) {
+        players.resize(2);
         string white, black;
         ss >> white;
         ss >> black;
@@ -121,8 +121,6 @@ public:
     Controller(): wins{0}, losses{0}, draws{0}, chessBoard{nullptr}, isGameSetup{false} {}
     ~Controller() {
         delete chessBoard;
-        delete players[0];
-        delete players[1];
     }
     void start() {
         string inputs;

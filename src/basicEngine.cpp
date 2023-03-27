@@ -1,5 +1,6 @@
 #include "basicEngine.h"
 #include "board.h"
+#include <climits>
 #include "util.h"
 #include <vector>
 

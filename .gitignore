@@ -1,7 +1,7 @@
 .*.swp
 .*.swo
-.*.d
-.*.o
+**/*.d
+**/*.o
 .vscode/
 src/Makefile
 **/.DS_STORE
