@@ -9,9 +9,8 @@
 3. On startup of the container, run `cd src` to navigate to the mounted project directory
 
 ### Useful scripts
-1. `./clean` to clean previous Makefile created objects 
-(Call when switching between DEBUG, TEST or NORMAL play modes)
-2. `./play [MODE]` // modes: DEBUG, TEST or NORMAL (default no param) 
+1. `./clean` to clean previous Makefile created objects
+2. `./play [MODE]` // modes: DEBUG, TEST or NORMAL
 * Note: DEBUG includes additional debug messages and TEST runs a local test suite to evaluate move generation
 
 ### Game Commands
