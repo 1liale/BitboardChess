@@ -28,13 +28,9 @@ exit // exits the game
 ```
 
 ## About
-BitboardChess is the second chess engine that I've worked on and is written from scratch in C++. The purpose of this project is to challenge myself to design an optimized chess program that demonstrates experience working in C++, ability to handle a large codebase, and problem-solving skills.
+BitboardChess is an experimental chess engine written from scratch in C++. It is an ongoing passion project that I started working on the side since December 1st, 2022. The purpose of this project is to challenge myself to design an optimized chess program that demonstrates experience working in C++, ability to handle a large codebase, and problem-solving skills.
 
-It is an ongoing passion project that I started working on the side since December 1st, 2022.
-
-Although this project was inspired by the first c++ chess engine I made in collaboration with Daniel Lee for the CS246 end of term project, they share almost no resemblance in either design or implementation. 
-
-For the sake of academic integrity, I cannot release the other project publicly. However, it is available upon request for potential employers.
+Additionally, I wanted to use this opportunities to experiment working with various chess optimization techniques / heuristics as well as attempt to create a parallelized version using multithreading.
 
 ## Features
 
