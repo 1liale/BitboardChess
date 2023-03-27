@@ -1,13 +1,18 @@
 # BitboardChess
 
-## How to run locally
-```
-1. git clone {repo}
-2. ./clean // To clean previous Makefile created objects 
+## Setup
+
+> Prereq: Install Docker, see [here](https://docs.docker.com/get-docker/) for steps
+
+1. Clone repository
+2. Run `./setup` to set up and run Docker container
+3. On startup of the container, run `cd src` to navigate to the mounted project directory
+
+### Useful scripts
+1. `./clean` to clean previous Makefile created objects 
 (Call when switching between DEBUG, TEST or NORMAL play modes)
-3. ./play [MODE] // MODE options: DEBUG, TEST or NORMAL (default no param) 
+2. `./play [MODE]` // modes: DEBUG, TEST or NORMAL (default no param) 
 * Note: DEBUG includes additional debug messages and TEST runs a local test suite to evaluate move generation
-```
 
 ### Game Commands
 ```
@@ -21,7 +26,6 @@ game [player1] [player2] // player can be of one of "basic", "sequential", "para
 
 showstat // shows current game stats
 exit // exits the game
-
 ```
 
 ## About
