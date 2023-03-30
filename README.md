@@ -17,7 +17,7 @@
 ```
 1. To start a new game run
 game [player1] [player2] // player can be of one of "basic", "sequential", "parallel" engines or "human" player
-* note only human and basic players supported at this time
+* note the parallel engine player is not supported at this time
 2. Once a game has started
     a. forfeit // player surrenders
     b. move [source] [target] [?p] // moves piece from source to target with the option to specify promotion piece
@@ -39,14 +39,16 @@ Additionally, I wanted to use this opportunity to experiment working with variou
 3. Magic-bitboard algorithm for sliding piece move generation (Bishop, Rook, Queen)
 4. Demonstration of OOP principles with the use of Observer and MVC patterns
 5. Piece square tables
-6. Naive engine implementation with minimax tree search
+6. Naive engine implementation with minimax tree search (*basic player*)
+7. Improved implementation with alpha beta pruning on a minimax search tree(*sequential player*)
+8. Move Ordering for Principal Variation
+9. Iterative Deepening (in progress, will combine with Transposition Table and threading for greater effectiveness)
 
 ## Next Steps
 - Implement UCI protocols to compare against other engines and obtain an accurate ELO evaluation
 - Implement a Concrete Observer for GUI (only text-based interaction is supported at this time)
 - Explore the use of various engine heuristics and techniques such as:
-1. Move ordering (Null, Killer, and History heuristics)
-2. Negamax tree search
-3. Transpositional table
+1. Transpositional table
+2. Parallizing search (Try different techniques such as Lazy SMP, Principal Variation Split, Root Split, etc)
+3. Experiment with Monte Carlo Tree Search like in AlphaZero
 4. (optionally) PolyGlot opening book support
-5. (optionally) neural network trained weights for evalutaion used in StockFish 15
