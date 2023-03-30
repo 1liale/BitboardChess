@@ -930,8 +930,9 @@ INLINE void refresh_accumulator(Position *pos)
       unsigned index = activeIndices[c].values[k];
       unsigned offset = kHalfDimensions * index;
 
-      for (unsigned j = 0; j < kHalfDimensions; j++)
+      for (unsigned j = 0; j < kHalfDimensions; j++) {
         accumulator->accumulation[c][j] += ft_weights[offset + j];
+      }
     }
 #endif
   }

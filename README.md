@@ -5,7 +5,7 @@
 > Prereq: Install Docker, see [here](https://docs.docker.com/get-docker/) for steps
 
 1. Clone repository
-2. Run `./setup` to set up and run Docker container
+2. Run `./setup` to set up and run Docker container (for non-unix users, ignore steps 2 and 3 otherwise)
 3. On startup of the container, run `cd src` to navigate to the mounted project directory
 
 ### Useful scripts
@@ -17,7 +17,6 @@
 ```
 1. To start a new game run
 game [player1] [player2] // player can be of one of "basic", "sequential", "parallel" engines or "human" player
-* note the parallel engine player is not supported at this time
 2. Once a game has started
     a. forfeit // player surrenders
     b. move [source] [target] [?p] // moves piece from source to target with the option to specify promotion piece
@@ -26,6 +25,8 @@ game [player1] [player2] // player can be of one of "basic", "sequential", "para
 showstat // shows current game stats
 exit // exits the game
 ```
+
+> * note that the parallel player is not supported at this time and sequential runs on the local machine but doesn't appear to work on the ubuntu image on docker due to error caused by the nnue library used.
 
 ## About
 BitboardChess is an experimental chess engine written from scratch in C++. It is an ongoing passion project that I started working on the side since December 1st, 2022. The purpose of this project is to challenge myself to design an optimized chess program that demonstrates experience working in C++, ability to handle a large codebase, and problem-solving skills.

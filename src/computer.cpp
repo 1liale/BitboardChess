@@ -9,7 +9,7 @@ using namespace std;
 
 Computer::Computer(int side, string& engineStr, Board *chessBoard) : Player{side} {
     if (engineStr == "basic") {
-        engine = make_unique<BasicEng>(chessBoard, prefDepth);
+        engine = make_unique<BasicEng>(chessBoard, 4);
     }
     // sequential engine
     else if (engineStr == "sequential") {

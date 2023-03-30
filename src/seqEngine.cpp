@@ -3,9 +3,7 @@
 #include "nnue/nnue.h"
 #include <climits>
 #include <vector>
-
-#define MIN_VAL -50000
-#define MAX_VAL 50000
+#include <algorithm>
 
 using namespace std;
 using namespace helpers;
@@ -63,7 +61,7 @@ int SequentialEng::evaluateBoard(int side) {
 
     // zero terminating
     sfPieces[index] = 0;
-    sfSquares[index] =  0;
+    sfSquares[index] = 0;
 
     // use NNUE to evaluate positional score
     int nnueScore = nnue_evaluate(side, sfPieces, sfSquares);
@@ -73,7 +71,7 @@ int SequentialEng::evaluateBoard(int side) {
 
 // defines custom heuristic to order principal variation moves
 int SequentialEng::heuristicOrder(EncMove encMove, int depth, int side) {
-    int score = MIN_VAL;
+    int score = INT_MIN;
     
     Move move{encMove};
 
@@ -126,7 +124,7 @@ vector<EncMove> SequentialEng::sortMoves(vector<EncMove> moves, int depth, bool 
     int movesLen = moves.size();
 
     // checks for principal variation
-    if (isFollowPV && ((depth + 1) >= pvTable.size() || 
+    if (isFollowPV && ((depth + 1) >= (int)pvTable.size() || 
         pvTable[depth] != chessBoard->getLastMove(side))) {
         isFollowPV = false;
     }
@@ -136,7 +134,7 @@ vector<EncMove> SequentialEng::sortMoves(vector<EncMove> moves, int depth, bool 
     for (int i = 0; i < movesLen; ++i) {
         if (isFollowPV && moves[i] == pvTable[depth + 1]) {
             pvMoves[i] = (isFollowPV && moves[i] == pvTable[depth + 1]) ?
-                make_pair(MAX_VAL, i ) : make_pair(heuristicOrder(moves[i], depth, side), i );
+                make_pair(INT_MAX, i ) : make_pair(heuristicOrder(moves[i], depth, side), i );
         }
     }
 
@@ -159,7 +157,12 @@ pair<EncMove, int> SequentialEng::alphabeta(int depth, int alpha, int beta,int m
     // bool isFollowPV = true;
     // vector<EncMove> moves = sortMoves(chessBoard->generateLegalMoves(side), depth, isFollowPV);
    
-    if (moves.empty()) return {NULL, evaluateBoard(maxSide)};
+    if (moves.empty()) {
+        if (chessBoard->isKingInCheck(side)) {
+            return {NULL, side == maxSide ? INT_MIN : INT_MAX };
+        }     
+        return {NULL, evaluateBoard(maxSide)};
+    };
     
     // randomized ai move from possible move to examine
     time_t t;
@@ -207,36 +210,29 @@ pair<EncMove, int> SequentialEng::alphabeta(int depth, int alpha, int beta,int m
 EncMove SequentialEng::getEngineMove() {
     EncMove bestMove;
     int side = chessBoard->getSide();
-    int score = 0, alpha = MIN_VAL, beta = MAX_VAL;
+    // int score = 0;
+    int alpha = INT_MIN, beta = INT_MAX;
 
-    uint64_t startTime = getCurrentTimeInMs();
-    uint64_t stopTime = startTime + 10000; // limit search time to 10 seconds
-    
-    #ifdef DEBUG
-    cout << "startTime: " << startTime << endl;
-    #endif
+    // uint64_t startTime = getCurrentTimeInMs();
+    // uint64_t stopTime = startTime + 10000; // limit search time to 10 seconds
 
     // iteratively deepen the search depth until max depth reached
-    for (int itDepth = 1; itDepth <= depth; ++itDepth) {
-        if (getCurrentTimeInMs() >= stopTime) break; // ran out of time
+    // for (int itDepth = depth; itDepth <= depth; ++itDepth) {
+    //     if (getCurrentTimeInMs() >= stopTime) break; // search period expired
         pair<EncMove, int> result = alphabeta(depth, alpha, beta, side, side);
-        score = result.second;
+        // score = result.second;
 
-        // reinitializes aspiration window if search out of bound
-        if ((score <= alpha) || (score >= beta)) {
-            alpha = -MIN_VAL;    
-            beta = MAX_VAL;      
-            continue;
-        }
+        // // reinitializes aspiration window if search out of bound
+        // if ((score <= alpha) || (score >= beta)) {
+        //     alpha = INT_MIN;    
+        //     beta = INT_MAX;      
+        //     continue;
+        // }
         bestMove = result.first;
         
         // decrease aspiration window size
-        alpha = score - 50;
-        beta = score + 50;
-    }
-
-    #ifdef DEBUG
-        cout << "stopTime: " << getCurrentTimeInMs() << endl;
-    #endif
+        // alpha = score - 50;
+        // beta = score + 50;
+    // }
     return bestMove;
 }
