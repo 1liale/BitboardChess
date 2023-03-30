@@ -6,7 +6,8 @@
 class ParallelEng: public Engine {
 public:
     ParallelEng(Board *chessBoard, int depth);
-    virtual uint16_t getEngineMove() override;
+    virtual EncMove getEngineMove() override;
+    virtual int evaluateBoard(int side) override;
 };
 
 #endif

@@ -5,3 +5,4 @@
 .vscode/
 src/Makefile
 **/.DS_STORE
+chess

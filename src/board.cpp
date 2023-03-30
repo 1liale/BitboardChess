@@ -3,17 +3,11 @@
 #include "util.h"
 #include <cstring>
 
-
 using namespace std;
 using namespace bitutil;
 using namespace helpers;
 
-
-#ifdef DEBUG
-    #define DEFAULT_FEN "6k1/PP3ppp/p7/P7/8/7P/1p3PPP/3R2K1"
-#else
-    #define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
-#endif
+#define DEFAULT_FEN "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 
 ///////////////////////  INITIALIZATION  /////////////////////// 
 
@@ -71,12 +65,12 @@ void Board::computeAttackBoards() {
     }
 }
 
-void Board::computeSliderAttacks(uint64_t mask, bool isBishop, int square) {
+void Board::computeSliderAttacks(BitBoard mask, bool isBishop, int square) {
     int relevantBitsCount = countBits(mask);
     int occupancyIndices = (1 << relevantBitsCount);
     
     for (int i = 0; i < occupancyIndices; i++) {
-        uint64_t occupancy = setOccupancy(i, relevantBitsCount, mask);
+        BitBoard occupancy = setOccupancy(i, relevantBitsCount, mask);
         if (isBishop) {
             int magicInd = (occupancy * bishopMagics[square]) >> (64 - bishopIndexBits[square]);
             bishopAttacks[square][magicInd] = maskBishopAttacksWithBlocks(square, occupancy);
@@ -112,13 +106,13 @@ char Board::getSquare(int square) const {
 int Board::getSide() const {
     return ply % 2;
 } 
-uint64_t Board::getOccupancyBySide(int side) const {
+BitBoard Board::getOccupancyBySide(int side) const {
     return occupancyMaps[side];
 }
-uint64_t Board::getEmptySquares() const {
+BitBoard Board::getEmptySquares() const {
     return occupancyMaps[BOTH_SIDE] ^ (~0ULL);
 }
-uint64_t Board::getPieceBB(char piece) {
+BitBoard Board::getPieceBB(char piece) {
     return pieceMaps[piece];
 }
 int Board::getKingSquare(int side) {
@@ -130,12 +124,12 @@ bool Board::isKingInCheck(int side) {
     return isSquareAttacked(side, kingSquare);
 }
 bool Board::isSquareAttacked(int side, int square) {
-    uint64_t pawnBB = (side == WHITE_SIDE ? pieceMaps['p'] : pieceMaps['P']);
-    uint64_t knightBB = (side == WHITE_SIDE ? pieceMaps['n'] : pieceMaps['N']);
-    uint64_t kingBB = (side == WHITE_SIDE ? pieceMaps['k'] : pieceMaps['K']);
-    uint64_t bishopBB = (side == WHITE_SIDE ? pieceMaps['b'] : pieceMaps['B']);
-    uint64_t rookBB = (side == WHITE_SIDE ? pieceMaps['r'] : pieceMaps['R']);
-    uint64_t queenBB = (side == WHITE_SIDE ? pieceMaps['q'] : pieceMaps['Q']);
+    BitBoard pawnBB = (side == WHITE_SIDE ? pieceMaps['p'] : pieceMaps['P']);
+    BitBoard knightBB = (side == WHITE_SIDE ? pieceMaps['n'] : pieceMaps['N']);
+    BitBoard kingBB = (side == WHITE_SIDE ? pieceMaps['k'] : pieceMaps['K']);
+    BitBoard bishopBB = (side == WHITE_SIDE ? pieceMaps['b'] : pieceMaps['B']);
+    BitBoard rookBB = (side == WHITE_SIDE ? pieceMaps['r'] : pieceMaps['R']);
+    BitBoard queenBB = (side == WHITE_SIDE ? pieceMaps['q'] : pieceMaps['Q']);
 
     // check if attacked by pawn
     if (pawnAttacks[side ^ 1][square] & pawnBB) return true;
@@ -153,22 +147,22 @@ bool Board::isSquareAttacked(int side, int square) {
     return false;
 }
 
-uint64_t Board::getBishopAttacks(int square, uint64_t occupancy) {
+BitBoard Board::getBishopAttacks(int square, BitBoard occupancy) {
     occupancy &= bishopMasks[square];
     occupancy *= bishopMagics[square];
     occupancy >>= 64 - bishopIndexBits[square];
 
     return bishopAttacks[square][occupancy];
 }
-uint64_t Board::getRookAttacks(int square, uint64_t occupancy) {
+BitBoard Board::getRookAttacks(int square, BitBoard occupancy) {
     occupancy &= rookMasks[square];
     occupancy *= rookMagics[square];
     occupancy >>= 64 - rookIndexBits[square];
     
     return rookAttacks[square][occupancy];
 }
-uint64_t Board::getQueenAttacks(int square, uint64_t occupancy) {
-    uint64_t attacks = 0ULL;
+BitBoard Board::getQueenAttacks(int square, BitBoard occupancy) {
+    BitBoard attacks = 0ULL;
     
     // merge bishop and rook attacks to get queen attacks
     attacks = getBishopAttacks(square, occupancy);
@@ -178,12 +172,16 @@ uint64_t Board::getQueenAttacks(int square, uint64_t occupancy) {
     return attacks;
 }
 
+EncMove Board::getLastMove(int side) const{
+    return moveHistory.empty() ? -1 : moveHistory.back().move; 
+}
+
 ///////////////////////  MOVE GENERATION  /////////////////////// 
 
-void Board::generatePawnMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generatePawnMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'P' : 'p';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
 
     // checks each pawn square
     while (bitboard) {
@@ -254,10 +252,10 @@ void Board::generatePawnMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateKnightMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateKnightMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'N' : 'n';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
     Move knightMove;
 
     // checks each knight square
@@ -285,10 +283,10 @@ void Board::generateKnightMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateKingMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateKingMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'K' : 'k';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
     Move kingMove;
 
     while(bitboard) {
@@ -313,10 +311,10 @@ void Board::generateKingMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateBishopMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateBishopMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'B' : 'b';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
     Move bishopMove;
 
     while (bitboard) {
@@ -340,10 +338,10 @@ void Board::generateBishopMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateRookMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateRookMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'R' : 'r';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
     Move rookMove;
 
     while (bitboard) {
@@ -367,10 +365,10 @@ void Board::generateRookMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateQueenMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateQueenMoves(int side, vector<EncMove>& moveslist) {
     int source, target;
     char piece = side == WHITE_SIDE ? 'Q' : 'q';
-    uint64_t bitboard = pieceMaps[piece], attacks;
+    BitBoard bitboard = pieceMaps[piece], attacks;
     Move queenMove;
 
      while (bitboard) {
@@ -394,7 +392,7 @@ void Board::generateQueenMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-void Board::generateSpecialMoves(int side, vector<uint16_t>& moveslist) {
+void Board::generateSpecialMoves(int side, vector<EncMove>& moveslist) {
     Move specialMove;
 
     // generates en-passant
@@ -454,8 +452,8 @@ void Board::generateSpecialMoves(int side, vector<uint16_t>& moveslist) {
     }
 }
 
-vector<uint16_t> Board::generatePseudoMoves(int side) {
-    vector<uint16_t> moveslist;
+vector<EncMove> Board::generatePseudoMoves(int side) {
+    vector<EncMove> moveslist;
 
     generatePawnMoves(side, moveslist);
     generateKnightMoves(side, moveslist);
@@ -468,8 +466,8 @@ vector<uint16_t> Board::generatePseudoMoves(int side) {
     return moveslist;
 }
 
-vector<uint16_t> Board::generateLegalMoves(int side) {
-    vector<uint16_t> moveslist = generatePseudoMoves(side), legalMoves;
+vector<EncMove> Board::generateLegalMoves(int side) {
+    vector<EncMove> moveslist = generatePseudoMoves(side), legalMoves;
     for (auto move : moveslist) {
         int moveFlag = makeMove(move);
         if (moveFlag == ILLEGAL_MOVE) continue; // skip illegal move
@@ -482,7 +480,7 @@ vector<uint16_t> Board::generateLegalMoves(int side) {
 ///////////////////////  MAKE AND UNDO MOVE /////////////////////// 
 
 // handles pseudo-legal move from human and computer
-int Board::makeMove(uint16_t pseudoMove) {
+int Board::makeMove(EncMove pseudoMove) {
     int side = getSide();
     ++ply;
     ++fifty;
@@ -575,8 +573,8 @@ int Board::makeMove(uint16_t pseudoMove) {
 // handles human player move
 int Board::makeMove(string& sourceStr, string& targetStr, char promote = 'x') {
     int side = getSide();
-    vector<uint16_t> moveslist = generateLegalMoves(side);
-    // vector<uint16_t> moveslist = generatePseudoMoves(side);
+    vector<EncMove> moveslist = generateLegalMoves(side);
+    // vector<EncMove> moveslist = generatePseudoMoves(side);
 #ifdef DEBUG
     cout << "legal moves: " << moveslist.size() << endl;
 #endif
@@ -683,23 +681,13 @@ void Board::undoMove() {
     computeOccupancyMaps();
 }
 
-// TODO: IMPLEMENT FOR NEGAMAX OPTIMIZATION (LOW PRIORITY)
-void Board::makeNullMove() {}
-void Board::undoNullMove() {}
-
 // evalutates current game state
 int Board::checkGameState(int side) {
     #ifdef DEBUG
     cout << "checking game state" << endl;
     #endif
     if (fifty == 100) return DRAW;
-    vector<uint16_t> legalMoves = generateLegalMoves(side);
-    #ifdef DEBUG
-    // cout << "moves available: " << legalMoves.size() << endl;
-    // for (auto & move: legalMoves) {
-    //     cout << Move{move} << endl;
-    // }    
-    #endif
+    vector<EncMove> legalMoves = generateLegalMoves(side);
     if (legalMoves.empty()) {
         if (isKingInCheck(side)) return GAME_OVER;
         else return DRAW;

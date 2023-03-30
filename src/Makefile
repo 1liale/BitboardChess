@@ -6,6 +6,7 @@ TARGET = chess
 
 # DIRECTORIES
 TARGET_DIR = ../
+NNUE_LIB = nnue
 
 CXXFLAGS := -std=c++14 -Wall -MMD -O3
 EXEC = ${TARGET_DIR}/${TARGET}
@@ -13,7 +14,8 @@ PLAYER = player.o human.o computer.o
 DISPLAY = subject.o textObserver.o
 ENGINES = engine.o basicEngine.o seqEngine.o parallelEngine.o
 STATE = board.o util.o move.o
-OBJECTS = main.o ${PLAYER} ${ENGINES} ${STATE} ${DISPLAY}
+NNUE = ${NNUE_LIB}/misc.o ${NNUE_LIB}/nnue.o
+OBJECTS = main.o ${PLAYER} ${NNUE} ${ENGINES} ${STATE} ${DISPLAY}
 DEPENDS = ${OBJECTS:.o=.d}
 
 ${EXEC}: ${OBJECTS}

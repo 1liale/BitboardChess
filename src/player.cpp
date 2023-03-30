@@ -1,4 +1,4 @@
 #include "player.h"
 
-Player::Player(bool isWhite): isWhite{isWhite} {}
+Player::Player(int side): side{side} {}
 Player::~Player() {}

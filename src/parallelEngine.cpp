@@ -4,6 +4,9 @@
 using namespace std;
 
 ParallelEng::ParallelEng(Board *chessBoard, int depth): Engine(chessBoard, depth) {}
-uint16_t ParallelEng::getEngineMove() {
+EncMove ParallelEng::getEngineMove() {
+    return 0;
+}
+int ParallelEng::evaluateBoard(int side) {
     return 0;
 }

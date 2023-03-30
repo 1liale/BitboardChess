@@ -3,9 +3,7 @@
 echo "Building..."
 [[ "$1" == "DEBUG" ]] && make -s -C src/ debug || make -s -C src/
 
-if [ "$1" == "DEBUG" ]; then
-    lldb ./chess
-elif [ "$1" == "TEST" ]; then
+if [ "$1" == "TEST" ]; then
     echo "Testing BitboardChess..."
     cd tests
     errlog=$(mktemp)

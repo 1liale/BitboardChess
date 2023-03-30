@@ -4,7 +4,7 @@
 
 using namespace std;
 
-Human::Human(bool isWhite) : Player{isWhite} {}
+Human::Human(int side) : Player{side} {}
 int Human::move(Board* chessBoard, istringstream &ss) {
     string source, target;
     char promote = 'x';

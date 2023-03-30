@@ -1,26 +1,28 @@
 #include "util.h"
 #include <iostream>
+#include <chrono>
+#include <cstdint>
 
-void bitutil::setBit(uint64_t& bitboard, int square) {
+void bitutil::setBit(BitBoard& bitboard, int square) {
     bitboard |= (1ULL << square);
 }
-void bitutil::popBit(uint64_t& bitboard, int square) {
+void bitutil::popBit(BitBoard& bitboard, int square) {
     bitboard &= ~(1ULL << square);
 }
-int bitutil::getBit(uint64_t bitboard, int square) {
+int bitutil::getBit(BitBoard bitboard, int square) {
     return (bitboard & (1ULL << square)) ? 1 : 0;
 }
-int bitutil::countBits(uint64_t bitboard) {
+int bitutil::countBits(BitBoard bitboard) {
     return __builtin_popcountll(bitboard); 
 }
-int bitutil::getLSBIndex(uint64_t bitboard) {
+int bitutil::getLSBIndex(BitBoard bitboard) {
     return __builtin_ffsll(bitboard) - 1;
 }
 int helpers::getSquareFromStr(std::string& coord) {
     return coord[0] - 'a' + ('8' - coord[1]) * BOARD_WIDTH;
 }
-uint64_t helpers::maskPawnAttacks(int side, int square) {
-    uint64_t rays = 0ULL, bb = 0ULL;
+BitBoard helpers::maskPawnAttacks(int side, int square) {
+    BitBoard rays = 0ULL, bb = 0ULL;
     bitutil::setBit(bb, square);
 
     if (side == WHITE_SIDE) {
@@ -33,8 +35,8 @@ uint64_t helpers::maskPawnAttacks(int side, int square) {
 
     return rays;
 }
-uint64_t helpers::maskKnightAttacks(int square) {
-    uint64_t rays = 0ULL, bb = 0ULL;
+BitBoard helpers::maskKnightAttacks(int square) {
+    BitBoard rays = 0ULL, bb = 0ULL;
     bitutil::setBit(bb, square);
 
     if ((bb >> 17) & NOT_H_FILE) rays |= (bb >> 17);
@@ -48,8 +50,8 @@ uint64_t helpers::maskKnightAttacks(int square) {
 
     return rays;
 }
-uint64_t helpers::maskKingAttacks(int square) {
-    uint64_t rays = 0ULL, bb = 0ULL;
+BitBoard helpers::maskKingAttacks(int square) {
+    BitBoard rays = 0ULL, bb = 0ULL;
     bitutil::setBit(bb, square);
 
     if ((bb >> 9) & NOT_H_FILE) rays |= (bb >> 9);
@@ -63,8 +65,8 @@ uint64_t helpers::maskKingAttacks(int square) {
 
     return rays;
 }
-uint64_t helpers::maskBishopAttacks(int square) {
-    uint64_t rays = 0ULL;
+BitBoard helpers::maskBishopAttacks(int square) {
+    BitBoard rays = 0ULL;
     int row = square / BOARD_WIDTH;
     int col = square % BOARD_WIDTH;
 
@@ -75,8 +77,8 @@ uint64_t helpers::maskBishopAttacks(int square) {
 
     return rays;
 }
-uint64_t helpers::maskRookAttacks(int square) {
-    uint64_t rays = 0ULL;
+BitBoard helpers::maskRookAttacks(int square) {
+    BitBoard rays = 0ULL;
     int row = square / BOARD_WIDTH;
     int col = square % BOARD_WIDTH;
 
@@ -87,8 +89,8 @@ uint64_t helpers::maskRookAttacks(int square) {
 
     return rays;
 }
-uint64_t helpers::maskBishopAttacksWithBlocks(int square, uint64_t block) {
-    uint64_t attacks = 0ULL, bishopPos;
+BitBoard helpers::maskBishopAttacksWithBlocks(int square, BitBoard block) {
+    BitBoard attacks = 0ULL, bishopPos;
     int row = square / BOARD_WIDTH;
     int col = square % BOARD_WIDTH;
 
@@ -115,8 +117,8 @@ uint64_t helpers::maskBishopAttacksWithBlocks(int square, uint64_t block) {
 
     return attacks;
 }
-uint64_t helpers::maskRookAttacksWithBlocks(int square, uint64_t block) {
-    uint64_t attacks = 0ULL, rookPos;
+BitBoard helpers::maskRookAttacksWithBlocks(int square, BitBoard block) {
+    BitBoard attacks = 0ULL, rookPos;
     int row = square / BOARD_WIDTH;
     int col = square % BOARD_WIDTH;
 
@@ -147,7 +149,7 @@ uint64_t helpers::maskRookAttacksWithBlocks(int square, uint64_t block) {
 
     return attacks;
 }
-void helpers::prettyPrintBB(uint64_t bb) {
+void helpers::prettyPrintBB(BitBoard bb) {
     for (int i = 0; i < BOARD_WIDTH; ++i) {
         std::string tmp;
         for (int j = 0; j < BOARD_WIDTH; ++j) {
@@ -158,9 +160,9 @@ void helpers::prettyPrintBB(uint64_t bb) {
     }
     std::cout << std::endl;
 }
-uint64_t helpers::setOccupancy(int index, int bitsCount, uint64_t mask) {
+BitBoard helpers::setOccupancy(int index, int bitsCount, BitBoard mask) {
     // occupancy map
-    uint64_t occupancy = 0ULL;
+    BitBoard occupancy = 0ULL;
     
     // loop over the range of bits within attack mask
     for (int i = 0; i < bitsCount; i++)
@@ -175,3 +177,7 @@ uint64_t helpers::setOccupancy(int index, int bitsCount, uint64_t mask) {
     // return occupancy map
     return occupancy;
 }
+uint64_t helpers::getCurrentTimeInMs() {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+

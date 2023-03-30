@@ -3,12 +3,17 @@
 
 #include "stdint.h"
 #include <string>
+#include <unordered_map>
 
 #define BOARD_SIZE 64
 #define BOARD_WIDTH 8
 #define WHITE_SIDE 0
 #define BLACK_SIDE 1
 #define BOTH_SIDE 2
+#define PIECES 12
+
+typedef uint16_t EncMove;
+typedef uint64_t BitBoard;
 
 enum {
     a8, b8, c8, d8, e8, f8, g8, h8,
@@ -29,6 +34,10 @@ const static std::string positions[64] {
     "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+};
+const static char pieces[12] {
+    'P', 'N','B', 'R', 'Q', 'K', 
+    'p', 'n','b','r', 'q', 'k'
 };
 enum MoveType {
     QUIET = 0, 
@@ -76,16 +85,16 @@ enum Flag {
     GAME_OVER,
 };
 
-const uint64_t NOT_A_FILE = 18374403900871474942ULL;
-const uint64_t NOT_H_FILE = 9187201950435737471ULL;
-const uint64_t NOT_HG_FILE = 4557430888798830399ULL;
-const uint64_t NOT_AB_FILE = 18229723555195321596ULL;
+const BitBoard NOT_A_FILE = 18374403900871474942ULL;
+const BitBoard NOT_H_FILE = 9187201950435737471ULL;
+const BitBoard NOT_HG_FILE = 4557430888798830399ULL;
+const BitBoard NOT_AB_FILE = 18229723555195321596ULL;
 
 // Magic numbers and index bits as used in ShallowBlue
 // full credit to https://github.com/GunshipPenguin/shallow-blue/blob/c6d7e9615514a86533a9e0ffddfc96e058fc9cfd/src/attacks.h#L120
 // for generating these magic numbers
 
-const static uint64_t rookMagics[64] = {
+const static BitBoard rookMagics[64] = {
    0x8a80104000800020ULL,
     0x140002000100040ULL,
     0x2801880a0017001ULL,
@@ -152,7 +161,7 @@ const static uint64_t rookMagics[64] = {
     0x1004081002402ULL
 };
 
-const static uint64_t bishopMagics[64] = {
+const static BitBoard bishopMagics[64] = {
    0x40040844404084ULL,
     0x2004208a004208ULL,
     0x10190041080202ULL,
@@ -242,12 +251,10 @@ const static int bishopIndexBits[64] = {
 };
 
 // Using the castling convention described in Monkey King's Didactic Chess,
-// full credits to Monkey King
 const static int castlingSideMask[2][2] = {
     {1, 2}, 
     {4, 8}
 };
-
 const static int castlingRightsTable[64] = {
     7, 15, 15, 15,  3, 15, 15, 11,
     15, 15, 15, 15, 15, 15, 15, 15,
@@ -259,24 +266,101 @@ const static int castlingRightsTable[64] = {
     13, 15, 15, 15, 12, 15, 15, 14
 };
 
+const static char promoOptions[4] = {'q', 'r', 'b', 'n'};
+
+const static std::unordered_map<char,int> weightMap = {
+    {'k',9000}, {'q',900}, {'r',500}, 
+    {'b',350}, {'n',320}, {'p',100}
+}; // K, Q, R, B, K, P
+
+// peSTO's piece square tables (used for basic engine evaluation)
+const static short pawnTable[64] = {
+    0,  0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    10, 10, 20, 30, 30, 20, 10, 10,
+    5,  5, 10, 27, 27, 10,  5,  5,
+    0,  0,  0, 25, 25,  0,  0,  0,
+    5, -5,-10,  0,  0,-10, -5,  5,
+    5, 10, 10,-25,-25, 10, 10,  5,
+    0,  0,  0,  0,  0,  0,  0,  0
+};
+const static short knightTable[64] = {
+    -50,-40,-30,-30,-30,-30,-40,-50,
+    -40,-20,  0,  0,  0,  0,-20,-40,
+    -30,  0, 10, 15, 15, 10,  0,-30,
+    -30,  5, 15, 20, 20, 15,  5,-30,
+    -30,  0, 15, 20, 20, 15,  0,-30,
+    -30,  5, 10, 15, 15, 10,  5,-30,
+    -40,-20,  0,  5,  5,  0,-20,-40,
+    -50,-40,-20,-30,-30,-20,-40,-50,
+};
+const static short bishopTable[64] = {
+    -20,-10,-10,-10,-10,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5, 10, 10,  5,  0,-10,
+    -10,  5,  5, 10, 10,  5,  5,-10,
+    -10,  0, 10, 10, 10, 10,  0,-10,
+    -10, 10, 10, 10, 10, 10, 10,-10,
+    -10,  5,  0,  0,  0,  0,  5,-10,
+    -20,-10,-40,-10,-10,-40,-10,-20,
+};
+const static short kingTable[64] = {
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -20, -30, -30, -40, -40, -30, -30, -20,
+    -10, -20, -20, -20, -20, -20, -20, -10, 
+    20,  20,   0,   0,   0,   0,  20,  20,
+    20,  30,  10,   0,   0,  10,  30,  20
+};
+
+// stockfish evaluation conversions
+const static int nnuePieces[12] = { 6, 5, 4, 3, 2, 1, 12, 11, 10, 9, 8, 7 };
+const static int nnueSquares[64] = {
+    a1, b1, c1, d1, e1, f1, g1, h1,
+	a2, b2, c2, d2, e2, f2, g2, h2,
+	a3, b3, c3, d3, e3, f3, g3, h3,
+	a4, b4, c4, d4, e4, f4, g4, h4,
+	a5, b5, c5, d5, e5, f5, g5, h5,
+	a6, b6, c6, d6, e6, f6, g6, h6,
+	a7, b7, c7, d7, e7, f7, g7, h7,
+	a8, b8, c8, d8, e8, f8, g8, h8
+};
+const static int materialScores[2][12] =
+{
+    // opening material score
+    {82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000},
+    // endgame material score
+    {94, 281, 297, 512,  936, 12000, -94, -281, -297, -512,  -936, -12000}
+};
+
+// scores for each game phase
+const static int openingPhaseScore = 6192;
+const static int endgamePhaseScore = 518;
+
+// game phases
+enum { opening, endgame, midgame };
+
 inline namespace bitutil {
-    void setBit(uint64_t& bitboard, int square); // sets bit for square
-    void popBit(uint64_t& bitboard, int square); // pops bit for square
-    int getBit(uint64_t bitboard, int square); // retuns 1 if square non-empty
-    int countBits(uint64_t bitboard); // counts # of bits
-    int getLSBIndex(uint64_t bitboard); // returns lsb square index;
+    void setBit(BitBoard& bitboard, int square); // sets bit for square
+    void popBit(BitBoard& bitboard, int square); // pops bit for square
+    int getBit(BitBoard bitboard, int square); // retuns 1 if square non-empty
+    int countBits(BitBoard bitboard); // counts # of bits
+    int getLSBIndex(BitBoard bitboard); // returns lsb square index;
 }
 
 inline namespace helpers {
     int getSquareFromStr(std::string& coord);
-    uint64_t maskPawnAttacks(int side, int square);
-    uint64_t maskKnightAttacks(int square);
-    uint64_t maskKingAttacks(int square);
-    uint64_t maskBishopAttacks(int square);
-    uint64_t maskRookAttacks(int square);
-    uint64_t maskBishopAttacksWithBlocks(int square, uint64_t block);
-    uint64_t maskRookAttacksWithBlocks(int square, uint64_t block);
-    void prettyPrintBB(uint64_t bb);
-    uint64_t setOccupancy(int index, int bitsCount, uint64_t mask);
+    BitBoard maskPawnAttacks(int side, int square);
+    BitBoard maskKnightAttacks(int square);
+    BitBoard maskKingAttacks(int square);
+    BitBoard maskBishopAttacks(int square);
+    BitBoard maskRookAttacks(int square);
+    BitBoard maskBishopAttacksWithBlocks(int square, BitBoard block);
+    BitBoard maskRookAttacksWithBlocks(int square, BitBoard block);
+    void prettyPrintBB(BitBoard bb);
+    BitBoard setOccupancy(int index, int bitsCount, BitBoard mask);
+    uint64_t getCurrentTimeInMs();
 }
 #endif

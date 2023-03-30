@@ -41,15 +41,15 @@ class Controller {
         ss >> white;
         ss >> black;
         if (white == "human") {
-            players[0] = new Human(true);
+            players[0] = new Human(WHITE_SIDE);
         } else {
-            players[0] = new Computer(true, white, chessBoard);
+            players[0] = new Computer(WHITE_SIDE, white, chessBoard);
         }
 
         if (black == "human") {
-            players[1] = new Human(false);
+            players[1] = new Human(BLACK_SIDE);
         } else {
-            players[1] = new Computer(false, black, chessBoard);
+            players[1] = new Computer(BLACK_SIDE, black, chessBoard);
         }
     }
 

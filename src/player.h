@@ -8,9 +8,9 @@ class Board;
 
 class Player {
 protected:
-    bool isWhite;
+    int side;
 public:
-    Player(bool isWhite);
+    Player(int side);
     virtual ~Player();
     virtual int move(Board* chessBoard, std::istringstream& ss) = 0;
 };

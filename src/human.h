@@ -7,7 +7,7 @@ class Board;
 
 class Human : public Player {
 public:
-    Human(bool isWhite);
+    Human(int side);
     virtual int move(Board* chessBoard, std::istringstream &ss) override;
 };
 

@@ -11,7 +11,7 @@ constexpr int PROMO_FLAG = 1 << 15;
 Move::Move(int source, int target, MoveType moveType): move{0} {
     move |= source | target << 6 | moveType << 12;
 }
-Move::Move(uint16_t move): move{move} {}
+Move::Move(EncMove move): move{move} {}
 
 int Move::getSource() const {
     return static_cast<int>(move & SOURCE_MASK);

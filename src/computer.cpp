@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Computer::Computer(bool isWhite, string& engineStr, Board *chessBoard) : Player{isWhite} {
+Computer::Computer(int side, string& engineStr, Board *chessBoard) : Player{side} {
     if (engineStr == "basic") {
         engine = make_unique<BasicEng>(chessBoard, prefDepth);
     }
@@ -23,7 +23,7 @@ Computer::Computer(bool isWhite, string& engineStr, Board *chessBoard) : Player{
 
 int Computer::move(Board* chessBoard, istringstream &ss) {
     (void) ss;
-    uint16_t move = engine.get()->getEngineMove();
-    cout << "engine move found" << endl;
+    EncMove move = engine.get()->getEngineMove();
+    cout << "engine move found: " << Move{move};
     return chessBoard->makeMove(move);
 }

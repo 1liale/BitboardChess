@@ -9,10 +9,10 @@
 // https://www.chessprogramming.org/Encoding_Moves
 
 struct Move {
-    uint16_t move; // 16-bit move encoding (6 source, 6 target, 4 flag)
+    EncMove move; // 16-bit move encoding (6 source, 6 target, 4 flag)
     Move() = default;
     Move(int source, int target, MoveType moveType);
-    Move(uint16_t move);
+    Move(EncMove move);
     int getSource() const;
     int getTarget() const;
     MoveType getMoveType() const;

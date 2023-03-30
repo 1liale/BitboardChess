@@ -2,6 +2,7 @@
 #define __ENGINE_H__
 
 #include "stdint.h"
+#include "util.h"
 
 class Board;
 
@@ -13,6 +14,7 @@ protected:
 public:
     Engine(Board *b, int depth);
     virtual ~Engine();
-    virtual uint16_t getEngineMove() = 0;
+    virtual EncMove getEngineMove() = 0;
+    virtual int evaluateBoard(int side) = 0;
 };
 #endif

@@ -30,7 +30,7 @@ exit // exits the game
 ## About
 BitboardChess is an experimental chess engine written from scratch in C++. It is an ongoing passion project that I started working on the side since December 1st, 2022. The purpose of this project is to challenge myself to design an optimized chess program that demonstrates experience working in C++, ability to handle a large codebase, and problem-solving skills.
 
-Additionally, I wanted to use this opportunities to experiment working with various chess optimization techniques / heuristics as well as attempt to create a parallelized version using multithreading.
+Additionally, I wanted to use this opportunity to experiment working with various chess optimization techniques / heuristics as well as attempt to create a parallelized version using multithreading.
 
 ## Features
 
